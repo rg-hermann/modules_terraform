@@ -1,1 +1,4 @@
-env/dev.tfvars filter=git-crypt diff=git-crypt
+*.tfvars filter=git-crypt diff=git-crypt
+*.tfstate filter=git-crypt diff=git-crypt
+*.tfstate.backup filter=git-crypt diff=git-crypt
+terraform.tfstate.d/* filter=git-crypt diff=git-crypt
