@@ -1,0 +1,22 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+!terraform.tfstate.d/
+crash.log
+*.tfvars
+!env/dev.tfvars
+.terraform.lock.hcl
+
+# git-crypt
+.git-crypt/
+
+# VSCode
+.vscode/
+
+# Logs
+*.log
+
+# Sistema
+Thumbs.db
+.DS_Store

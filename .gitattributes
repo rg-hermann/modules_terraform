@@ -1,0 +1,1 @@
+env/dev.tfvars filter=git-crypt diff=git-crypt
