@@ -4,6 +4,7 @@ resource "azurerm_virtual_network" "this" {
   address_space       = var.vnet_address_space
   location            = var.location
   resource_group_name = var.resource_group_name
+  tags                = var.tags
 }
 
 resource "azurerm_subnet" "public" {
@@ -24,12 +25,14 @@ resource "azurerm_network_security_group" "public_nsg" {
   name                = "${var.public_subnet_name}-nsg"
   location            = var.location
   resource_group_name = var.resource_group_name
+  tags                = var.tags
 }
 
 resource "azurerm_network_security_group" "private_nsg" {
   name                = "${var.private_subnet_name}-nsg"
   location            = var.location
   resource_group_name = var.resource_group_name
+  tags                = var.tags
 }
 
 resource "azurerm_subnet_network_security_group_association" "public_assoc" {
@@ -46,6 +49,7 @@ resource "azurerm_route_table" "public_rt" {
   name                = "${var.public_subnet_name}-rt"
   location            = var.location
   resource_group_name = var.resource_group_name
+  tags                = var.tags
 }
 
 resource "azurerm_route" "internet" {

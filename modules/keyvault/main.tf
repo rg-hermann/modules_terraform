@@ -5,6 +5,7 @@ resource "azurerm_key_vault" "this" {
   tenant_id                   = var.tenant_id
   sku_name                    = var.sku_name
   purge_protection_enabled    = true
+  tags                       = var.tags
 
   access_policy {
     tenant_id = var.tenant_id

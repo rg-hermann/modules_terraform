@@ -2,12 +2,14 @@ resource "azurerm_user_assigned_identity" "aks" {
   name                = "${var.aks_name}-identity"
   location            = var.location
   resource_group_name = var.resource_group_name
+  tags                = var.tags
 }
 resource "azurerm_kubernetes_cluster" "this" {
   name                = var.aks_name
   location            = var.location
   resource_group_name = var.resource_group_name
   dns_prefix          = var.dns_prefix
+  tags                = var.tags
 
   default_node_pool {
     name       = "default"
@@ -31,4 +33,5 @@ resource "azurerm_role_assignment" "aks_route_table_network_contributor" {
   scope                = var.public_subnet_route_table_id
   role_definition_name = "Network Contributor"
   principal_id         = azurerm_user_assigned_identity.aks.principal_id
+  tags                 = var.tags
 }
