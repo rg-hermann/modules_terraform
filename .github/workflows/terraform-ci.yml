@@ -96,6 +96,8 @@ jobs:
 
       - name: Install tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           additional_args: --config-file .tfsec.yml --concise-output --soft-fail
         continue-on-error: true
@@ -160,5 +162,7 @@ jobs:
 
       - name: Run tfsec (fail on issues)
         uses: aquasecurity/tfsec-action@v1.0.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           additional_args: --config-file .tfsec.yml --minimum-severity MEDIUM
