@@ -5,7 +5,8 @@ plugin "azurerm" {
 }
 
 config {
-  call_module_type = true
+  # Possible values: "all", "local", "none". Using "all" to evaluate all module calls.
+  call_module_type = "all"
 }
 
 rule "terraform_required_providers" { enabled = true }
