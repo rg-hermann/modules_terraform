@@ -9,11 +9,11 @@ resource "azurerm_user_assigned_identity" "aks" {
   tags                = local.aks_tags
 }
 resource "azurerm_kubernetes_cluster" "this" {
-  name                = var.aks_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  dns_prefix          = var.dns_prefix
-  tags                = local.aks_tags
+  name                    = var.aks_name
+  location                = var.location
+  resource_group_name     = var.resource_group_name
+  dns_prefix              = var.dns_prefix
+  tags                    = local.aks_tags
   private_cluster_enabled = var.enable_private_cluster
 
   default_node_pool {
@@ -33,7 +33,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     secret_rotation_enabled = true
   }
 
-  kubernetes_version                 = var.kubernetes_version
+  kubernetes_version                = var.kubernetes_version
   oidc_issuer_enabled               = true
   role_based_access_control_enabled = true
 

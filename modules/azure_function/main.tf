@@ -4,16 +4,16 @@ locals {
 
 # Storage Account opcional (caso não seja fornecido)
 resource "azurerm_storage_account" "fa" {
-  count                    = var.storage_account_name == null ? 1 : 0
-  name                     = var.storage_account_name == null ? substr(replace(lower(var.function_app_name), "-", ""), 0, 20) : var.storage_account_name
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  min_tls_version          = "TLS1_2"
+  count                           = var.storage_account_name == null ? 1 : 0
+  name                            = var.storage_account_name == null ? substr(replace(lower(var.function_app_name), "-", ""), 0, 20) : var.storage_account_name
+  resource_group_name             = var.resource_group_name
+  location                        = var.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
   public_network_access_enabled   = true
-  tags                    = local.base_tags
+  tags                            = local.base_tags
 }
 
 # App Service Plan (Consumption ou Dedicado)
@@ -38,15 +38,15 @@ resource "azurerm_application_insights" "fa" {
 
 # Function App (Linux)
 resource "azurerm_linux_function_app" "this" {
-  name                       = var.function_app_name
-  resource_group_name        = var.resource_group_name
-  location                   = var.location
-  service_plan_id            = azurerm_service_plan.fa.id
-  storage_account_name       = var.storage_account_name == null ? azurerm_storage_account.fa[0].name : var.storage_account_name
-  storage_account_access_key = var.storage_account_name == null ? azurerm_storage_account.fa[0].primary_access_key : null
-  https_only                 = true
+  name                        = var.function_app_name
+  resource_group_name         = var.resource_group_name
+  location                    = var.location
+  service_plan_id             = azurerm_service_plan.fa.id
+  storage_account_name        = var.storage_account_name == null ? azurerm_storage_account.fa[0].name : var.storage_account_name
+  storage_account_access_key  = var.storage_account_name == null ? azurerm_storage_account.fa[0].primary_access_key : null
+  https_only                  = true
   functions_extension_version = "~4"
-  tags                       = local.base_tags
+  tags                        = local.base_tags
 
   identity {
     type         = var.identity_type
@@ -91,11 +91,11 @@ resource "azurerm_linux_function_app" "this" {
   app_settings = merge({
     FUNCTIONS_WORKER_RUNTIME = lower(var.runtime_stack)
     WEBSITE_RUN_FROM_PACKAGE = 1
-  # Se reutilizando storage externo, usuário precisa fornecer connection string
-  WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = var.storage_account_name == null ? azurerm_storage_account.fa[0].primary_connection_string : var.storage_account_connection_string
-    WEBSITE_CONTENTSHARE                = "${lower(var.function_app_name)}-content"
-    APPLICATIONINSIGHTS_CONNECTION_STRING = var.enable_application_insights ? azurerm_application_insights.fa[0].connection_string : null
-    APPINSIGHTS_INSTRUMENTATIONKEY        = var.enable_application_insights ? azurerm_application_insights.fa[0].instrumentation_key : null
+    # Se reutilizando storage externo, usuário precisa fornecer connection string
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = var.storage_account_name == null ? azurerm_storage_account.fa[0].primary_connection_string : var.storage_account_connection_string
+    WEBSITE_CONTENTSHARE                     = "${lower(var.function_app_name)}-content"
+    APPLICATIONINSIGHTS_CONNECTION_STRING    = var.enable_application_insights ? azurerm_application_insights.fa[0].connection_string : null
+    APPINSIGHTS_INSTRUMENTATIONKEY           = var.enable_application_insights ? azurerm_application_insights.fa[0].instrumentation_key : null
   }, var.app_settings)
 
   lifecycle {

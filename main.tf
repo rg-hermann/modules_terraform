@@ -26,8 +26,8 @@ locals {
   normalized_prefix = lower(replace(var.prefix, " ", "-"))
 
   # Exemplos de nomes derivados caso queira padronizar futuramente
-  inferred_resource_group_name = var.resource_group_name != "" ? var.resource_group_name : "rg-${local.normalized_prefix}"
-  inferred_storage_account_name = var.storage_account_name != "" ? var.storage_account_name : "${replace(local.normalized_prefix, "-", "") }sa"
+  inferred_resource_group_name  = var.resource_group_name != "" ? var.resource_group_name : "rg-${local.normalized_prefix}"
+  inferred_storage_account_name = var.storage_account_name != "" ? var.storage_account_name : "${replace(local.normalized_prefix, "-", "")}sa"
 }
 
 resource "azurerm_resource_group" "tfstate" {
@@ -71,38 +71,38 @@ module "vnet" {
 }
 
 module "keyvault" {
-  source              = "./modules/keyvault"
-  keyvault_name       = var.keyvault_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tenant_id           = var.tenant_id
-  object_id           = var.object_id
-  sku_name            = var.sku_name
-  public_network_access_enabled        = var.public_network_access_enabled
-  network_acls_allowed_ips             = var.network_acls_allowed_ips
+  source                                  = "./modules/keyvault"
+  keyvault_name                           = var.keyvault_name
+  location                                = var.location
+  resource_group_name                     = var.resource_group_name
+  tenant_id                               = var.tenant_id
+  object_id                               = var.object_id
+  sku_name                                = var.sku_name
+  public_network_access_enabled           = var.public_network_access_enabled
+  network_acls_allowed_ips                = var.network_acls_allowed_ips
   network_acls_virtual_network_subnet_ids = var.network_acls_virtual_network_subnet_ids
-  network_acls_bypass                  = var.network_acls_bypass
-  tags                = local.base_tags
+  network_acls_bypass                     = var.network_acls_bypass
+  tags                                    = local.base_tags
 }
 
 module "aks" {
-  source                       = "./modules/aks"
-  aks_name                     = var.aks_name
-  location                     = var.location
-  resource_group_name          = var.resource_group_name
-  dns_prefix                   = var.dns_prefix
-  node_count                   = var.node_count
-  vm_size                      = var.vm_size
-  subnet_id                    = module.vnet.public_subnet_id
-  public_subnet_route_table_id = module.vnet.public_subnet_route_table_id
-  keyvault_id                  = module.keyvault.keyvault_id
-  kubernetes_version           = var.kubernetes_version
+  source                          = "./modules/aks"
+  aks_name                        = var.aks_name
+  location                        = var.location
+  resource_group_name             = var.resource_group_name
+  dns_prefix                      = var.dns_prefix
+  node_count                      = var.node_count
+  vm_size                         = var.vm_size
+  subnet_id                       = module.vnet.public_subnet_id
+  public_subnet_route_table_id    = module.vnet.public_subnet_route_table_id
+  keyvault_id                     = module.keyvault.keyvault_id
+  kubernetes_version              = var.kubernetes_version
   api_server_authorized_ip_ranges = var.api_server_authorized_ip_ranges
   enable_private_cluster          = var.enable_private_cluster
   network_plugin                  = var.network_plugin
   network_policy                  = var.network_policy
   log_analytics_workspace_id      = var.aks_log_analytics_workspace_id
-  tags                         = local.base_tags
+  tags                            = local.base_tags
 }
 
 # Criação opcional do ACR

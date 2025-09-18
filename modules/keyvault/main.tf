@@ -3,15 +3,15 @@ locals {
 }
 
 resource "azurerm_key_vault" "this" {
-  name                       = var.keyvault_name
-  location                   = var.location
-  resource_group_name        = var.resource_group_name
-  tenant_id                  = var.tenant_id
-  sku_name                   = lower(var.sku_name)
-  purge_protection_enabled   = true
-  soft_delete_retention_days = 7
+  name                          = var.keyvault_name
+  location                      = var.location
+  resource_group_name           = var.resource_group_name
+  tenant_id                     = var.tenant_id
+  sku_name                      = lower(var.sku_name)
+  purge_protection_enabled      = true
+  soft_delete_retention_days    = 7
   public_network_access_enabled = var.public_network_access_enabled
-  tags                       = local.kv_tags
+  tags                          = local.kv_tags
 
   dynamic "network_acls" {
     for_each = var.public_network_access_enabled ? [] : [1]
