@@ -1,21 +1,37 @@
 # Módulo Terraform: Azure Key Vault
 
 Este módulo cria um Azure Key Vault com:
-- Soft delete e purge protection habilitados
-- Política de acesso parametrizável
-- Outputs do ID e URI do Key Vault
 
 ## Variáveis principais
-- `keyvault_name`
-- `location`
-- `resource_group_name`
-- `tenant_id`
-- `sku_name`
-- `object_id`
 
 ## Outputs
-- `keyvault_id`
-- `keyvault_uri`
+
+## Requisitos
+- Terraform >= 1.3.0
+- Provider AzureRM >= 3.0.0
+
+## Variáveis
+| Nome           | Tipo      | Default    | Descrição                                      |
+|----------------|-----------|------------|-------------------------------------------------|
+| keyvault_name  | string    | -          | Nome do Key Vault                               |
+| location       | string    | -          | Localização do recurso Azure                    |
+| resource_group_name | string | -         | Nome do Resource Group                          |
+| tenant_id      | string    | -          | ID do tenant Azure                              |
+| sku_name       | string    | standard   | SKU do Key Vault (Standard ou Premium)          |
+| object_id      | string    | -          | Object ID do usuário/aplicação para acesso      |
+
+## Outputs
+| Nome         | Descrição                |
+|--------------|--------------------------|
+| keyvault_id  | ID do Key Vault criado   |
+| keyvault_uri | URI do Key Vault         |
+
+## Providers
+```hcl
+provider "azurerm" {
+  features {}
+}
+```
 
 ## Exemplo de uso
 ```hcl

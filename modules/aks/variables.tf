@@ -1,17 +1,53 @@
+variable "prefix" {
+  description = "Prefixo para nomeação dos recursos."
+  type        = string
+  default     = "demo"
+}
+
+variable "tags" {
+  description = "Tags para todos os recursos criados."
+  type        = map(string)
+  default     = {
+    environment = "dev"
+    managed_by  = "terraform"
+    module      = "aks"
+  }
+}
 variable "aks_name" {
   description = "Nome do cluster AKS"
   type        = string
 }
+ variable "aks_name" {
+   description = "Nome do cluster AKS"
+   type        = string
+   validation {
+     condition     = length(var.aks_name) > 2
+     error_message = "O nome do AKS deve ter pelo menos 3 caracteres."
+   }
 
 variable "location" {
   description = "Localização do recurso Azure"
   type        = string
 }
+ variable "location" {
+   description = "Localização do recurso Azure"
+   type        = string
+   validation {
+     condition     = can(regex("^(eastus|westeurope|brazilsouth)", var.location))
+     error_message = "A localização deve ser uma região Azure válida."
+   }
 
 variable "resource_group_name" {
   description = "Nome do Resource Group"
   type        = string
 }
+ variable "resource_group_name" {
+   description = "Nome do Resource Group"
+   type        = string
+   validation {
+     condition     = length(var.resource_group_name) > 2
+     error_message = "O nome do Resource Group deve ter pelo menos 3 caracteres."
+   }
 
 variable "dns_prefix" {
   description = "Prefixo DNS para o AKS"

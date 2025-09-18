@@ -9,6 +9,8 @@ terraform {
   #   resource_group_name   = "rg-tfstate"
   #   storage_account_name  = "tfstateaccountdemo"
   #   container_name        = "tfstate"
+  prefix = var.prefix
+  tags   = var.tags
   #   key                   = "terraform.tfstate"
   # }
 }
@@ -19,6 +21,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "tfstate" {
+  prefix   = var.prefix
+  tags     = var.tags
   name     = var.resource_group_name
   location = var.location
 }
@@ -33,6 +37,8 @@ resource "azurerm_storage_account" "tfstate" {
 
 resource "azurerm_storage_container" "tfstate" {
   name                  = var.storage_container_name
+  prefix                = var.prefix
+  tags                  = var.tags
   storage_account_id    = azurerm_storage_account.tfstate.id
   container_access_type = "private"
 }
