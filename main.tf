@@ -147,6 +147,8 @@ module "azure_function" {
   app_settings                      = var.function_app_settings
   identity_type                     = var.function_identity_type
   user_assigned_identity_ids        = var.function_user_assigned_identity_ids
+  storage_account_access_key        = var.function_storage_account_access_key
+  storage_account_connection_string = var.function_storage_account_connection_string
   tags                              = local.base_tags
 }
 
