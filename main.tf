@@ -28,6 +28,8 @@ locals {
   # Exemplos de nomes derivados caso queira padronizar futuramente
   inferred_resource_group_name  = var.resource_group_name != "" ? var.resource_group_name : "rg-${local.normalized_prefix}"
   inferred_storage_account_name = var.storage_account_name != "" ? var.storage_account_name : "${replace(local.normalized_prefix, "-", "")}sa"
+  # Workspace efetivo para logging do AKS: prioridade para variável explícita, senão output do módulo se criado
+  effective_log_analytics_workspace_id = var.aks_log_analytics_workspace_id != null ? var.aks_log_analytics_workspace_id : try(module.log_analytics[0].log_analytics_workspace_id, null)
 }
 
 resource "azurerm_resource_group" "tfstate" {
@@ -101,7 +103,7 @@ module "aks" {
   enable_private_cluster          = var.enable_private_cluster
   network_plugin                  = var.network_plugin
   network_policy                  = var.network_policy
-  log_analytics_workspace_id      = var.aks_log_analytics_workspace_id
+  log_analytics_workspace_id      = local.effective_log_analytics_workspace_id
   tags                            = local.base_tags
 }
 

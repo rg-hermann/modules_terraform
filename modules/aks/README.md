@@ -69,3 +69,4 @@ module "aks" {
 - Considere `enable_private_cluster = true` em ambientes sensíveis.
 - Use `network_policy` (azure ou calico) para aplicar isolamento de tráfego.
 - Forneça `log_analytics_workspace_id` para habilitar logging de cluster.
+ - Se usar o módulo `log_analytics` no root, o ID dele é automaticamente detectado (fallback via `effective_log_analytics_workspace_id`).
