@@ -3,33 +3,33 @@
 # Referência: https://github.com/actions/labeler
 
 aks:
-	- "modules/aks/**"
+  - "modules/aks/**"
 infrastructure:
-	- "modules/aks/**"
+  - "modules/aks/**"
 
 keyvault:
-	- "modules/keyvault/**"
+  - "modules/keyvault/**"
 security:
-	- "modules/keyvault/**"
+  - "modules/keyvault/**"
 
 network:
-	- "modules/vnet/**"
+  - "modules/vnet/**"
 
 acr:
-	- "modules/acr/**"
+  - "modules/acr/**"
 container:
-	- "modules/acr/**"
+  - "modules/acr/**"
 
 observability:
-	- "modules/log_analytics/**"
+  - "modules/log_analytics/**"
 
 functions:
-	- "modules/azure_function/**"
+  - "modules/azure_function/**"
 runtime:
-	- "modules/azure_function/**"
+  - "modules/azure_function/**"
 
 ci:
-	- ".github/**"
+  - ".github/**"
 
 documentation:
-	- "**/*.md"
+  - "**/*.md"

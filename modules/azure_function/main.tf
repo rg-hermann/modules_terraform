@@ -5,7 +5,7 @@ locals {
 # Storage Account opcional (caso não seja fornecido)
 resource "azurerm_storage_account" "fa" {
   count                    = var.storage_account_name == null ? 1 : 0
-  name                     = substr(replace(lower(var.function_app_name), "-", ""), 0, 20)
+  name                     = var.storage_account_name == null ? substr(replace(lower(var.function_app_name), "-", ""), 0, 20) : var.storage_account_name
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"
@@ -91,7 +91,8 @@ resource "azurerm_linux_function_app" "this" {
   app_settings = merge({
     FUNCTIONS_WORKER_RUNTIME = lower(var.runtime_stack)
     WEBSITE_RUN_FROM_PACKAGE = 1
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = var.storage_account_name == null ? azurerm_storage_account.fa[0].primary_connection_string : var.storage_account_connection_string
+  # Se reutilizando storage externo, usuário precisa fornecer connection string
+  WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = var.storage_account_name == null ? azurerm_storage_account.fa[0].primary_connection_string : var.storage_account_connection_string
     WEBSITE_CONTENTSHARE                = "${lower(var.function_app_name)}-content"
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.enable_application_insights ? azurerm_application_insights.fa[0].connection_string : null
     APPINSIGHTS_INSTRUMENTATIONKEY        = var.enable_application_insights ? azurerm_application_insights.fa[0].instrumentation_key : null

@@ -199,7 +199,7 @@ variable "function_app_name" {
   type        = string
   default     = null
   validation {
-    condition = var.function_app_name == null || can(regex("^[a-z0-9][a-z0-9-]{0,58}[a-z0-9]$", var.function_app_name))
+    condition = var.function_app_name == null || can(regex("^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$", var.function_app_name))
     error_message = "function_app_name deve ter 2-60 chars, letras/números/hífens, não iniciar/terminar com hífen."
   }
 }
@@ -272,4 +272,16 @@ variable "function_storage_account_name" {
     condition = var.function_storage_account_name == null || can(regex("^[a-z0-9]{3,24}$", var.function_storage_account_name))
     error_message = "function_storage_account_name deve atender regras de Storage (3-24 chars minúsculos/números)."
   }
+}
+
+variable "function_storage_account_access_key" {
+  description = "Access key do Storage Account reutilizado pela Function (obrigatório se function_storage_account_name != null)."
+  type        = string
+  default     = null
+}
+
+variable "function_storage_account_connection_string" {
+  description = "Connection string do Storage Account reutilizado pela Function (obrigatório se function_storage_account_name != null)."
+  type        = string
+  default     = null
 }

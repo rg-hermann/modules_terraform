@@ -16,6 +16,8 @@ Provisiona uma Azure Function (Linux) com opções de:
 | app_service_plan_sku | string | Y1/EP1/EP2/EP3/B1/B2/B3/S1/S2/S3 | Y1 |
 | enable_application_insights | bool | Cria Application Insights | true |
 | storage_account_name | string | Reutiliza storage existente (null cria) | null |
+| storage_account_access_key | string | Access key se reutilizando storage existente | null |
+| storage_account_connection_string | string | Connection string se reutilizando storage existente | null |
 | always_on | bool | Força Always On (não para Y1) | false |
 | identity_type | string | SystemAssigned|UserAssigned|SystemAssigned,UserAssigned | SystemAssigned |
 | user_assigned_identity_ids | list(string) | IDs de identidades UA | [] |
@@ -52,6 +54,7 @@ module "azure_function" {
 - `ignore_changes` em `app_settings` previne drift por deploy process.
 - Para Premium/Dedicado considere `always_on=true`.
 - Armazenamento: se reutilizar um existente assegure que tenha as configurações padrão (TLS1_2, LRS, etc.).
+  - Ao reutilizar (`storage_account_name != null`) é obrigatório informar também `storage_account_access_key` e `storage_account_connection_string`.
 
 ## Próximas Melhorias
 - Slots de deployment opcionais

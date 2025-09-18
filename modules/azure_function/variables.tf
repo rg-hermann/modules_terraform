@@ -84,3 +84,23 @@ variable "user_assigned_identity_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "storage_account_access_key" {
+  description = "Access key do Storage Account reutilizado (obrigatório se storage_account_name não for null)."
+  type        = string
+  default     = null
+}
+
+variable "storage_account_connection_string" {
+  description = "Connection string do Storage Account reutilizado (obrigatório se storage_account_name não for null)."
+  type        = string
+  default     = null
+  validation {
+    condition = var.storage_account_name == null || (
+      var.storage_account_name != null &&
+      var.storage_account_access_key != null &&
+      var.storage_account_connection_string != null
+    )
+    error_message = "Quando reutilizando um storage (storage_account_name != null) é obrigatório informar storage_account_access_key e storage_account_connection_string."
+  }
+}
