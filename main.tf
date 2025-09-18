@@ -26,8 +26,10 @@ locals {
   normalized_prefix = lower(replace(var.prefix, " ", "-"))
 
   # Exemplos de nomes derivados caso queira padronizar futuramente
-  inferred_resource_group_name = var.resource_group_name != "" ? var.resource_group_name : "rg-${local.normalized_prefix}"
-  inferred_storage_account_name = var.storage_account_name != "" ? var.storage_account_name : "${replace(local.normalized_prefix, "-", "") }sa"
+  inferred_resource_group_name  = var.resource_group_name != "" ? var.resource_group_name : "rg-${local.normalized_prefix}"
+  inferred_storage_account_name = var.storage_account_name != "" ? var.storage_account_name : "${replace(local.normalized_prefix, "-", "")}sa"
+  # Workspace efetivo para logging do AKS: prioridade para variável explícita, senão output do módulo se criado
+  effective_log_analytics_workspace_id = var.aks_log_analytics_workspace_id != null ? var.aks_log_analytics_workspace_id : try(module.log_analytics[0].log_analytics_workspace_id, null)
 }
 
 resource "azurerm_resource_group" "tfstate" {
@@ -71,32 +73,54 @@ module "vnet" {
 }
 
 module "keyvault" {
-  source              = "./modules/keyvault"
-  keyvault_name       = var.keyvault_name
+  source                                  = "./modules/keyvault"
+  keyvault_name                           = var.keyvault_name
+  location                                = var.location
+  resource_group_name                     = var.resource_group_name
+  tenant_id                               = var.tenant_id
+  object_id                               = var.object_id
+  sku_name                                = var.sku_name
+  public_network_access_enabled           = var.public_network_access_enabled
+  network_acls_allowed_ips                = var.network_acls_allowed_ips
+  network_acls_virtual_network_subnet_ids = var.network_acls_virtual_network_subnet_ids
+  network_acls_bypass                     = var.network_acls_bypass
+  tags                                    = local.base_tags
+}
+
+# Log Analytics opcional (posicionado antes do AKS para permitir referência direta e melhor detecção por linters/security tools)
+module "log_analytics" {
+  count               = var.log_analytics_workspace_name == null ? 0 : 1
+  source              = "./modules/log_analytics"
+  workspace_name      = var.log_analytics_workspace_name
   location            = var.location
   resource_group_name = var.resource_group_name
-  tenant_id           = var.tenant_id
-  object_id           = var.object_id
-  sku_name            = var.sku_name
+  sku                 = var.log_analytics_sku
+  retention_days      = var.log_analytics_retention_days
   tags                = local.base_tags
+  enable_diagnostics  = var.enable_diagnostics
 }
 
 module "aks" {
-  source                       = "./modules/aks"
-  aks_name                     = var.aks_name
-  location                     = var.location
-  resource_group_name          = var.resource_group_name
-  dns_prefix                   = var.dns_prefix
-  node_count                   = var.node_count
-  vm_size                      = var.vm_size
-  subnet_id                    = module.vnet.public_subnet_id
-  public_subnet_route_table_id = module.vnet.public_subnet_route_table_id
-  keyvault_id                  = module.keyvault.keyvault_id
-  kubernetes_version           = var.kubernetes_version
-  tags                         = local.base_tags
+  source                          = "./modules/aks"
+  aks_name                        = var.aks_name
+  location                        = var.location
+  resource_group_name             = var.resource_group_name
+  dns_prefix                      = var.dns_prefix
+  node_count                      = var.node_count
+  vm_size                         = var.vm_size
+  subnet_id                       = module.vnet.public_subnet_id
+  public_subnet_route_table_id    = module.vnet.public_subnet_route_table_id
+  keyvault_id                     = module.keyvault.keyvault_id
+  kubernetes_version              = var.kubernetes_version
+  api_server_authorized_ip_ranges = var.api_server_authorized_ip_ranges
+  enable_private_cluster          = var.enable_private_cluster
+  network_plugin                  = var.network_plugin
+  network_policy                  = var.network_policy
+  log_analytics_workspace_id      = local.effective_log_analytics_workspace_id
+  tags                            = local.base_tags
 }
 
-# Criação opcional do ACR
+# Criação opcional do ACR (após AKS para possível role assignment à identidade do cluster)
 module "acr" {
   count               = var.acr_name == null ? 0 : 1
   source              = "./modules/acr"
@@ -109,16 +133,24 @@ module "acr" {
   aks_principal_id    = module.aks.aks_principal_id
 }
 
-# Log Analytics opcional
-module "log_analytics" {
-  count               = var.log_analytics_workspace_name == null ? 0 : 1
-  source              = "./modules/log_analytics"
-  workspace_name      = var.log_analytics_workspace_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  sku                 = var.log_analytics_sku
-  retention_days      = var.log_analytics_retention_days
-  tags                = local.base_tags
-  enable_diagnostics  = var.enable_diagnostics
+# Azure Function opcional
+module "azure_function" {
+  count                             = var.function_app_name == null ? 0 : 1
+  source                            = "./modules/azure_function"
+  function_app_name                 = var.function_app_name
+  location                          = var.location
+  resource_group_name               = var.resource_group_name
+  storage_account_name              = var.function_storage_account_name
+  app_service_plan_sku              = var.function_app_service_plan_sku
+  runtime_stack                     = var.function_runtime_stack
+  runtime_version                   = var.function_runtime_version
+  enable_application_insights       = var.function_enable_application_insights
+  always_on                         = var.function_always_on
+  app_settings                      = var.function_app_settings
+  identity_type                     = var.function_identity_type
+  user_assigned_identity_ids        = var.function_user_assigned_identity_ids
+  storage_account_access_key        = var.function_storage_account_access_key
+  storage_account_connection_string = var.function_storage_account_connection_string
+  tags                              = local.base_tags
 }
 

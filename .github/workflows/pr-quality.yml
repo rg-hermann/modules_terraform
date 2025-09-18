@@ -1,0 +1,60 @@
+name: PR Quality Guard
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pr-metadata:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR Title Convention
+        uses: actions-ecosystem/action-regex-match@v2
+        id: title
+        with:
+          text: ${{ github.event.pull_request.title }}
+          regex: '^(feat|fix|refactor|docs|ci|chore|security)(\(.+\))?: .{5,}'
+      - name: Fail if title invalid
+        if: steps.title.outputs.match != 'true'
+        run: |
+          echo "Título do PR não segue padrão: <tipo>(escopo): descrição" >&2
+          exit 1
+
+      - name: Check Checklist Markers
+        uses: actions-ecosystem/action-regex-match@v2
+        id: checklist
+        with:
+          text: ${{ github.event.pull_request.body }}
+          regex: '- \[x\] `terraform validate`'
+      - name: Warn if checklist not completed
+        if: steps.checklist.outputs.match != 'true'
+        run: echo 'Aviso: Checklist parece incompleto.'
+
+      - name: Add Size Label
+        uses: pascalgn/size-label-action@v0.5.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          sizes: >
+            {"XS": 0, "S": 40, "M": 120, "L": 300, "XL": 600}
+
+  terraform-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+      - name: Terraform Format
+        run: terraform fmt -recursive -check
+      - name: Terraform Init (no backend)
+        run: terraform init -backend=false
+      - name: Terraform Validate
+        run: terraform validate

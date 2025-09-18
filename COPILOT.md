@@ -8,7 +8,7 @@ Infraestrutura modular em Terraform para Azure (rede, segurança, container runt
 ## 2. Stack Atual
 - Terraform >= 1.5
 - Provider AzureRM `~> 4.41.0`
-- Módulos internos: `vnet`, `keyvault`, `aks`, `acr`, `log_analytics`
+- Módulos internos: `vnet`, `keyvault`, `aks`, `acr`, `log_analytics`, `azure_function` (opcional)
 - Estado atualmente local (backend azurerm comentado – pode ser ativado)
 
 ## 3. Padrões Gerais
@@ -40,6 +40,7 @@ modules/<nome>/
 | aks | Cluster Kubernetes com identidade gerenciada + OIDC | Node pools separados, autoscaler, private cluster, network policy, Azure CNI |
 | acr | Registro de imagens + role `AcrPull` p/ AKS | Private link, content trust, tasks build, lifecycle policies |
 | log_analytics | Workspace de logs | Diagnostic settings modulares, alert rules, app insights integração |
+| azure_function | Function App Linux com runtime dinâmico | Slots, VNet integration, Key Vault references, private endpoints |
 
 ## 6. Roadmap Prioritário (Sugestão)
 1. Backend remoto definitivo (Storage + versioning + locks + network restrictions)
@@ -49,7 +50,7 @@ modules/<nome>/
 5. AKS enhancements: autoscaling, system/user pools, network policy (Calico/Azure), API server authorized IPs
 6. Workload Identity + Federated Credentials (Key Vault / outras APIs)
 7. Observabilidade: Container Insights / Prometheus + Alert Rules
-8. Pipeline CI (fmt/validate/tflint/tfsec/plan) + aprovação manual para `apply`
+8. Pipeline CI (fmt/validate/tflint/tfsec/plan) + aprovação manual para `apply` (parcial: CI pronto, apply pendente)
 9. Política / Governança: Azure Policy (tags obrigatórias, TLS1_2, bloqueio de recursos inseguros)
 10. Terratest para smoke tests (RG, VNet, outputs críticos)
 
@@ -100,8 +101,8 @@ Quando reintroduzir diagnostic settings criar módulo `diagnostics`:
 | Logging | Centralizar em LA + export opcional para Event Hub / Archive |
 
 ## 13. Convenção de Saída (Outputs) no Root
-- Usar `try(module.x[0].y, null)` para módulos opcionais com `count`
-- Marcar `sensitive = true` sempre que for credencial, kubeconfig ou chave
+- Usar `try(module.x[0].y, null)` para módulos opcionais com `count` (ex: `azure_function`)
+- Marcar `sensitive = true` sempre que for credencial, kubeconfig ou chave (App Insights keys marcadas)
 
 ## 14. Uso de Workspaces vs Múltiplos Diretórios
 Atualmente um único root. Estratégias futuras:
@@ -124,9 +125,9 @@ Criar diretório `scripts/` com utilitários:
 | Falta de tags obrigatórias corporativas | Centralizar merge em `local.base_tags` |
 
 ## 17. Próximas Ações Recomendadas (Automação)
-- Criar workflow `.github/workflows/ci.yml` com: fmt -> validate -> tflint -> tfsec -> plan
-- Adicionar badge de status no README
-- Incluir exemplo de consumo de ACR com workload identity (quando habilitado)
+- Criar workflow `terraform-apply.yml` (manual) reutilizando plano
+- Adicionar badge de status do CI no README
+- Exemplo de consumo de ACR + AKS + Function com workload identity (quando habilitado)
 
 ## 18. Como um Agente Deve Prosseguir em Futuras Tarefas
 1. Ler `variables.tf` para confirmar interface antes de editar

@@ -54,3 +54,31 @@ variable "object_id" {
     error_message = "object_id não pode ser vazio."
   }
 }
+
+variable "public_network_access_enabled" {
+  description = "Se true mantém acesso público geral (não recomendado). False força depender de network_acls."
+  type        = bool
+  default     = false
+}
+
+variable "network_acls_allowed_ips" {
+  description = "Lista de IPs/CIDRs autorizados ao Key Vault. Se vazia e public_network_access_enabled=false, acesso só via subnets autorizadas."
+  type        = list(string)
+  default     = []
+}
+
+variable "network_acls_virtual_network_subnet_ids" {
+  description = "Lista de IDs de subnets autorizadas ao Key Vault."
+  type        = list(string)
+  default     = []
+}
+
+variable "network_acls_bypass" {
+  description = "Serviços a bypass (AzureServices ou None)."
+  type        = string
+  default     = "AzureServices"
+  validation {
+    condition     = can(regex("^(?i)(AzureServices|None)$", var.network_acls_bypass))
+    error_message = "network_acls_bypass deve ser AzureServices ou None."
+  }
+}

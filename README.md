@@ -1,3 +1,83 @@
+<!-- Status Badges -->
+![Terraform CI](https://github.com/rg-hermann/modules_terraform/actions/workflows/terraform-ci.yml/badge.svg)
+![PR Quality Guard](https://github.com/rg-hermann/modules_terraform/actions/workflows/pr-quality.yml/badge.svg)
+
+## Visão Geral
+- **Infraestrutura modular:** VNet, Key Vault, AKS, ACR, Log Analytics e (opcional) Azure Function App, além de backend para estado Terraform.
+- **Segurança:** Uso de Managed Service Identity (MSI), outputs sensíveis marcados e preparo para private endpoints futuros.
+ 
+- **Observabilidade:** Workspace Log Analytics opcional + (agora) Application Insights via módulo de Function.
+- **Pronto para produção:** Parametrização via `.tfvars`, módulos desacoplados e padronização de tags.
+- **Boas práticas adicionais:** Validações em variáveis, naming consistente via `prefix`, outputs condicionais usando `try()`.
+## Módulos Disponíveis
+- **VNet:** Rede virtual com subnets públicas e privadas, NSGs e route tables customizadas.
+- **Key Vault:** Cofre para segredos com purge protection e validações.
+- **AKS:** Cluster Kubernetes com identidade gerenciada e integração Key Vault.
+- **ACR (opcional):** Registro de container com role `AcrPull` automática para o AKS.
+- **Log Analytics (opcional):** Workspace para logs/metrics (diagnostic settings futuros).
+ 
+- **Azure Function (opcional / novo):** Provisiona Linux Function App com runtime dinâmico, Application Insights e identidade gerenciada.
+ 
+Exemplo de `env/dev.tfvars` (já fornecido) – agora incluindo opções de Function:
+ ```hcl
+ aks_name           = "aks-demo-rgh01"
+## Estrutura do Projeto
+```
+ modules_terraform/
+ ├── modules/
+ │   ├── vnet/
+ │   ├── keyvault/
+ │   ├── aks/
+ │   ├── acr/
+ │   ├── log_analytics/
+ │   └── azure_function/
+ 
+## Próximos Passos / Melhorias Futuras
+- Diagnostic Settings centralizados (AKS / Key Vault / Storage / ACR / Function) -> Log Analytics
+- Azure CNI / Network Policies avançadas no AKS
+- ACR: private link, content trust, lifecycle policies, tasks
+- Private Endpoints (Key Vault, Storage, ACR, Function)
+- Pipeline Apply manual com aprovação e trava de plano
+- Testes (Terratest) para módulos críticos
+- Azure Policy / drift detection
+- Workload Identity (OIDC federado) para workloads AKS e Functions
+- Slots e VNet Integration para Function App
+## CI/CD (GitHub Actions)
+Workflow de CI (`terraform-ci`) já incluído validando: fmt, validate, tflint, tfsec (soft+strict), plan em PR e comentário automático.
+ 
+### Próximos Passos para o Apply Automatizado
+- Criar workflow `terraform-apply.yml` manual.
+- Usar `-lock-timeout=5m` e `-input=false`.
+- Reutilizar plano armazenado (mesmo commit) para evitar TOCTOU.
+ 
+## Comandos Úteis
+```sh
+terraform fmt -recursive
+terraform validate
+terraform plan -var-file=env/dev.tfvars
+terraform apply -var-file=env/dev.tfvars
+terraform output -json | jq
+```
+ 
+### Exemplo de Uso do Módulo Azure Function (isolado)
+```hcl
+module "azure_function" {
+   source                              = "./modules/azure_function"
+   function_app_name                   = var.function_app_name
+   location                            = var.location
+   resource_group_name                 = var.resource_group_name
+   runtime_stack                       = var.function_runtime_stack
+   runtime_version                     = var.function_runtime_version
+   app_service_plan_sku                = var.function_app_service_plan_sku
+   enable_application_insights         = var.function_enable_application_insights
+   identity_type                       = var.function_identity_type
+   user_assigned_identity_ids          = var.function_user_assigned_identity_ids
+   storage_account_name                = var.function_storage_account_name
+   app_settings                        = var.function_app_settings
+   always_on                           = var.function_always_on
+   tags                                = local.base_tags
+}
+```
 # Azure Terraform Modules
 
 Este repositório contém módulos Terraform reutilizáveis para provisionamento de infraestrutura no Microsoft Azure, com foco em segurança, modularidade e boas práticas.

@@ -1,0 +1,16 @@
+# CODEOWNERS define responsáveis automáticos por revisões
+# Sintaxe: padrões do gitignore. O último match prevalece.
+
+# Dono global
+* @rg-hermann
+
+# Módulos específicos (exemplo de expansão futura)
+/modules/aks/ @rg-hermann
+/modules/keyvault/ @rg-hermann
+/modules/vnet/ @rg-hermann
+/modules/acr/ @rg-hermann
+/modules/log_analytics/ @rg-hermann
+/modules/azure_function/ @rg-hermann
+
+# Infra de CI
+/.github/ @rg-hermann

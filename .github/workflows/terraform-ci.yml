@@ -101,6 +101,21 @@ jobs:
         with:
           additional_args: --config-file .tfsec.yml --concise-output --soft-fail
         continue-on-error: true
+      # Exemplo alternativo (manual) com validação explícita de asset (descomentando se quiser controlar versão):
+      # - name: Install tfsec (manual fallback)
+      #   if: ${{ false }}
+      #   run: |
+      #     set -euo pipefail
+      #     repo=aquasecurity/tfsec
+      #     rel_json=$(curl -sSL --fail-with-body https://api.github.com/repos/${repo}/releases/latest)
+      #     asset_url=$(echo "$rel_json" | jq -r '.assets[] | select(.name | test("linux_amd64")) | .browser_download_url' | head -n1)
+      #     if [ -z "$asset_url" ]; then echo "Asset não encontrado" >&2; exit 1; fi
+      #     echo "Baixando tfsec: $asset_url" >&2
+      #     curl -sSL -o tfsec.tgz "$asset_url"
+      #     file_type=$(file -b tfsec.tgz || true)
+      #     if echo "$file_type" | grep -qi 'gzip'; then tar -xzf tfsec.tgz || true; fi
+      #     chmod +x tfsec || chmod +x ./tfsec || true
+      #     ./tfsec --version || true
 
       - name: Terraform Plan
         id: plan

@@ -84,3 +84,41 @@ variable "public_subnet_route_table_id" {
     error_message = "O ID da route table não pode ser vazio."
   }
 }
+
+variable "api_server_authorized_ip_ranges" {
+  description = "Lista de IPs/CIDRs autorizados a acessar o API Server do AKS. Se vazia, não aplica restrição (NÃO RECOMENDADO em produção)."
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_private_cluster" {
+  description = "Se true, habilita private cluster (requer configuração de DNS/vNet)."
+  type        = bool
+  default     = false
+}
+
+variable "network_plugin" {
+  description = "Plugin de rede (azure ou kubenet)."
+  type        = string
+  default     = "azure"
+  validation {
+    condition     = can(regex("^(?i)(azure|kubenet)$", var.network_plugin))
+    error_message = "network_plugin deve ser azure ou kubenet."
+  }
+}
+
+variable "network_policy" {
+  description = "Network policy provider (azure|calico). Se vazio não define (pode gerar alerta tfsec)."
+  type        = string
+  default     = "azure"
+  validation {
+    condition     = var.network_policy == "" || can(regex("^(?i)(azure|calico)$", var.network_policy))
+    error_message = "network_policy deve ser azure, calico ou vazio."
+  }
+}
+
+variable "log_analytics_workspace_id" {
+  description = "ID de um Log Analytics Workspace para habilitar logging via OMS agent. Se null não anexa (gera finding tfsec)."
+  type        = string
+  default     = null
+}

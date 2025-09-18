@@ -81,3 +81,38 @@ output "storage_container_id" {
   description = "ID do container criado para o backend"
   value       = azurerm_storage_container.tfstate.id
 }
+
+# =============================
+# Azure Function (opcional)
+# =============================
+output "function_app_id" {
+  description = "ID da Function App (se criada)"
+  value       = try(module.azure_function[0].function_app_id, null)
+}
+
+output "function_app_name" {
+  description = "Nome da Function App (se criada)"
+  value       = try(module.azure_function[0].function_app_name, null)
+}
+
+output "function_app_default_hostname" {
+  description = "Hostname padrão da Function (se criada)"
+  value       = try(module.azure_function[0].default_hostname, null)
+}
+
+output "function_app_principal_id" {
+  description = "Principal ID da Function (se criada)"
+  value       = try(module.azure_function[0].principal_id, null)
+}
+
+output "function_app_insights_connection_string" {
+  description = "Connection string do App Insights da Function (se criado)"
+  value       = try(module.azure_function[0].app_insights_connection_string, null)
+  sensitive   = true
+}
+
+output "function_app_insights_instrumentation_key" {
+  description = "Instrumentation Key do App Insights da Function (se criado)"
+  value       = try(module.azure_function[0].app_insights_instrumentation_key, null)
+  sensitive   = true
+}
