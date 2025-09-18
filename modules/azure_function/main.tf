@@ -5,7 +5,7 @@ locals {
 # Storage Account opcional (caso não seja fornecido)
 resource "azurerm_storage_account" "fa" {
   count                    = var.storage_account_name == null ? 1 : 0
-  name                     = var.storage_account_name == null ? substr(replace(lower(var.function_app_name), "-", ""), 0, 20) : var.storage_account_name
+  name                     = substr(replace(lower(var.function_app_name), "-", ""), 0, 20)
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"
