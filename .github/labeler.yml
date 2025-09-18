@@ -1,9 +1,35 @@
-# Labeler rules: path -> labels
-modules/aks/: [aks, infrastructure]
-modules/keyvault/: [keyvault, security]
-modules/vnet/: [network]
-modules/acr/: [acr, container]
-modules/log_analytics/: [observability]
-modules/azure_function/: [functions, runtime]
-.github/: [ci]
-**/*.md: [documentation]
+## Labeler configuration
+# Formato suportado por actions/labeler@v5: cada chave é o nome da label e valores são globs.
+# Referência: https://github.com/actions/labeler
+
+aks:
+	- "modules/aks/**"
+infrastructure:
+	- "modules/aks/**"
+
+keyvault:
+	- "modules/keyvault/**"
+security:
+	- "modules/keyvault/**"
+
+network:
+	- "modules/vnet/**"
+
+acr:
+	- "modules/acr/**"
+container:
+	- "modules/acr/**"
+
+observability:
+	- "modules/log_analytics/**"
+
+functions:
+	- "modules/azure_function/**"
+runtime:
+	- "modules/azure_function/**"
+
+ci:
+	- ".github/**"
+
+documentation:
+	- "**/*.md"
