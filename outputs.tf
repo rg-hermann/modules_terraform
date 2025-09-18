@@ -33,6 +33,10 @@ output "aks_kube_config" {
   value       = module.aks.kube_config
   sensitive   = true
 }
+output "aks_api_server_endpoint" {
+  description = "Endpoint da API do cluster AKS"
+  value       = module.aks.api_server_endpoint
+}
 output "resource_group_name" {
   description = "Nome do Resource Group criado para o backend"
   value       = azurerm_resource_group.tfstate.name

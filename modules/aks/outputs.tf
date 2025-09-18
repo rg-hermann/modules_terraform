@@ -20,4 +20,10 @@ output "aks_id" {
 output "kube_config" {
   description = "Configuração do kubeconfig para acesso ao cluster"
   value       = azurerm_kubernetes_cluster.this.kube_config_raw
+  sensitive   = true
+}
+
+output "api_server_endpoint" {
+  description = "Endpoint da API do cluster"
+  value       = azurerm_kubernetes_cluster.this.kube_config[0].host
 }

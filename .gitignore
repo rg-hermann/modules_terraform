@@ -7,6 +7,11 @@ crash.log
 *.tfvars
 !env/dev.tfvars
 .terraform.lock.hcl
+*.auto.tfvars
+*.plan
+
+# Local kubeconfig exports
+kubeconfig-*.yaml
 
 # git-crypt
 .git-crypt/
@@ -17,6 +22,10 @@ crash.log
 # Logs
 *.log
 
+# Editor / IDE
+.idea/
+
 # Sistema
 Thumbs.db
 .DS_Store
+node_modules/

@@ -1,18 +1,13 @@
 terraform {
+  required_version = ">= 1.5.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "4.41.0"
+      version = "~> 4.41.0"
     }
   }
-  # backend "azurerm" {
-  #   resource_group_name   = "rg-tfstate"
-  #   storage_account_name  = "tfstateaccountdemo"
-  #   container_name        = "tfstate"
-  prefix = var.prefix
-  tags   = var.tags
-  #   key                   = "terraform.tfstate"
-  # }
+  # Para ativar backend remoto posteriormente, descomente e ajuste:
+  # backend "azurerm" {}
 }
 
 provider "azurerm" {
@@ -20,25 +15,37 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
+# Tags base combinando tags padrão e específicas do workspace
+locals {
+  base_tags = merge({
+    environment = lookup(var.tags, "environment", "dev")
+    managed_by  = "terraform"
+  }, var.tags)
+}
+
 resource "azurerm_resource_group" "tfstate" {
-  prefix   = var.prefix
-  tags     = var.tags
   name     = var.resource_group_name
   location = var.location
+  tags     = local.base_tags
 }
 
 resource "azurerm_storage_account" "tfstate" {
-  name                     = var.storage_account_name
-  resource_group_name      = azurerm_resource_group.tfstate.name
-  location                 = azurerm_resource_group.tfstate.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = var.storage_account_name
+  resource_group_name             = azurerm_resource_group.tfstate.name
+  location                        = azurerm_resource_group.tfstate.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  min_tls_version                 = "TLS1_2"
+  tags                            = local.base_tags
+  allow_nested_items_to_be_public = false
+  public_network_access_enabled   = true
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 resource "azurerm_storage_container" "tfstate" {
   name                  = var.storage_container_name
-  prefix                = var.prefix
-  tags                  = var.tags
   storage_account_id    = azurerm_storage_account.tfstate.id
   container_access_type = "private"
 }
@@ -53,6 +60,7 @@ module "vnet" {
   public_subnet_prefix  = var.public_subnet_prefix
   private_subnet_name   = var.private_subnet_name
   private_subnet_prefix = var.private_subnet_prefix
+  tags                  = local.base_tags
 }
 
 module "keyvault" {
@@ -63,6 +71,7 @@ module "keyvault" {
   tenant_id           = var.tenant_id
   object_id           = var.object_id
   sku_name            = var.sku_name
+  tags                = local.base_tags
 }
 
 module "aks" {
@@ -77,5 +86,6 @@ module "aks" {
   public_subnet_route_table_id = module.vnet.public_subnet_route_table_id
   keyvault_id                  = module.keyvault.keyvault_id
   kubernetes_version           = var.kubernetes_version
+  tags                         = local.base_tags
 }
 

@@ -99,3 +99,22 @@ variable "private_subnet_prefix" {
   description = "Prefixo da Subnet Privada"
   type        = list(string)
 }
+
+variable "prefix" {
+  description = "Prefixo opcional para nomear recursos (usado em convenções futuras)."
+  type        = string
+  default     = "demo"
+  validation {
+    condition     = length(var.prefix) <= 12 && can(regex("^[a-z0-9-]+$", var.prefix))
+    error_message = "prefix deve ter até 12 caracteres, minúsculos, números ou hífen."
+  }
+}
+
+variable "tags" {
+  description = "Mapa de tags adicionais para todos os recursos. 'managed_by' será sobrescrito para 'terraform'."
+  type        = map(string)
+  default = {
+    environment = "dev"
+    project     = "demo"
+  }
+}

@@ -53,11 +53,11 @@ resource "azurerm_route_table" "public_rt" {
 }
 
 resource "azurerm_route" "internet" {
-  name                   = "internet-route"
-  resource_group_name    = var.resource_group_name
-  route_table_name       = azurerm_route_table.public_rt.name
-  address_prefix         = "0.0.0.0/0"
-  next_hop_type          = "Internet"
+  name                = "internet-route"
+  resource_group_name = var.resource_group_name
+  route_table_name    = azurerm_route_table.public_rt.name
+  address_prefix      = "0.0.0.0/0"
+  next_hop_type       = "Internet"
 }
 
 resource "azurerm_subnet_route_table_association" "public_rt_assoc" {

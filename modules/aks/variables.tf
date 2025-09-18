@@ -1,44 +1,35 @@
-variable "prefix" {
-  description = "Prefixo para nomeação dos recursos."
-  type        = string
-  default     = "demo"
+variable "tags" {
+  description = "Tags para o cluster AKS"
+  type        = map(string)
+  default     = {}
 }
 
-variable "tags" {
-  description = "Tags para todos os recursos criados."
-  type        = map(string)
-  default     = {
-    environment = "dev"
-    managed_by  = "terraform"
-    module      = "aks"
+variable "aks_name" {
+  description = "Nome do cluster AKS"
+  type        = string
+  validation {
+    condition     = length(var.aks_name) >= 3 && can(regex("^[a-zA-Z0-9-]+$", var.aks_name))
+    error_message = "aks_name deve ter ao menos 3 caracteres (letras, números ou hífen)."
   }
 }
-// ...existing code...
- variable "aks_name" {
-   description = "Nome do cluster AKS"
-   type        = string
-   validation {
-     condition     = length(var.aks_name) > 2
-     error_message = "O nome do AKS deve ter pelo menos 3 caracteres."
-   }
 
-// ...existing code...
- variable "location" {
-   description = "Localização do recurso Azure"
-   type        = string
-   validation {
-     condition     = can(regex("^(eastus|westeurope|brazilsouth)", var.location))
-     error_message = "A localização deve ser uma região Azure válida."
-   }
+variable "location" {
+  description = "Localização do recurso Azure"
+  type        = string
+  validation {
+    condition     = can(regex("^(eastus|westeurope|brazilsouth)", var.location))
+    error_message = "location deve ser uma das regiões permitidas (eastus|westeurope|brazilsouth)."
+  }
+}
 
-// ...existing code...
- variable "resource_group_name" {
-   description = "Nome do Resource Group"
-   type        = string
-   validation {
-     condition     = length(var.resource_group_name) > 2
-     error_message = "O nome do Resource Group deve ter pelo menos 3 caracteres."
-   }
+variable "resource_group_name" {
+  description = "Nome do Resource Group"
+  type        = string
+  validation {
+    condition     = length(var.resource_group_name) >= 3
+    error_message = "resource_group_name deve ter pelo menos 3 caracteres."
+  }
+}
 
 variable "dns_prefix" {
   description = "Prefixo DNS para o AKS"

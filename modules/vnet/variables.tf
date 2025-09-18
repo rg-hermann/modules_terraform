@@ -7,7 +7,7 @@ variable "prefix" {
 variable "tags" {
   description = "Tags para todos os recursos criados."
   type        = map(string)
-  default     = {
+  default = {
     environment = "dev"
     managed_by  = "terraform"
     module      = "vnet"
