@@ -87,6 +87,19 @@ module "keyvault" {
   tags                                    = local.base_tags
 }
 
+# Log Analytics opcional (posicionado antes do AKS para permitir referência direta e melhor detecção por linters/security tools)
+module "log_analytics" {
+  count               = var.log_analytics_workspace_name == null ? 0 : 1
+  source              = "./modules/log_analytics"
+  workspace_name      = var.log_analytics_workspace_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  sku                 = var.log_analytics_sku
+  retention_days      = var.log_analytics_retention_days
+  tags                = local.base_tags
+  enable_diagnostics  = var.enable_diagnostics
+}
+
 module "aks" {
   source                          = "./modules/aks"
   aks_name                        = var.aks_name
@@ -107,7 +120,7 @@ module "aks" {
   tags                            = local.base_tags
 }
 
-# Criação opcional do ACR
+# Criação opcional do ACR (após AKS para possível role assignment à identidade do cluster)
 module "acr" {
   count               = var.acr_name == null ? 0 : 1
   source              = "./modules/acr"
@@ -118,19 +131,6 @@ module "acr" {
   tags                = local.base_tags
   assign_aks_pull     = var.acr_assign_aks_pull
   aks_principal_id    = module.aks.aks_principal_id
-}
-
-# Log Analytics opcional
-module "log_analytics" {
-  count               = var.log_analytics_workspace_name == null ? 0 : 1
-  source              = "./modules/log_analytics"
-  workspace_name      = var.log_analytics_workspace_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  sku                 = var.log_analytics_sku
-  retention_days      = var.log_analytics_retention_days
-  tags                = local.base_tags
-  enable_diagnostics  = var.enable_diagnostics
 }
 
 # Azure Function opcional
