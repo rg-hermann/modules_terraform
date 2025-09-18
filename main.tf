@@ -122,3 +122,22 @@ module "log_analytics" {
   enable_diagnostics  = var.enable_diagnostics
 }
 
+# Azure Function opcional
+module "azure_function" {
+  count                             = var.function_app_name == null ? 0 : 1
+  source                            = "./modules/azure_function"
+  function_app_name                 = var.function_app_name
+  location                          = var.location
+  resource_group_name               = var.resource_group_name
+  storage_account_name              = var.function_storage_account_name
+  app_service_plan_sku              = var.function_app_service_plan_sku
+  runtime_stack                     = var.function_runtime_stack
+  runtime_version                   = var.function_runtime_version
+  enable_application_insights       = var.function_enable_application_insights
+  always_on                         = var.function_always_on
+  app_settings                      = var.function_app_settings
+  identity_type                     = var.function_identity_type
+  user_assigned_identity_ids        = var.function_user_assigned_identity_ids
+  tags                              = local.base_tags
+}
+

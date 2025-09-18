@@ -190,3 +190,86 @@ variable "enable_diagnostics" {
   type        = bool
   default     = true
 }
+
+# =============================
+# Azure Function (Opcional)
+# =============================
+variable "function_app_name" {
+  description = "Nome da Azure Function App (se null não cria). Deve ser único globalmente."
+  type        = string
+  default     = null
+  validation {
+    condition = var.function_app_name == null || can(regex("^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$", var.function_app_name))
+    error_message = "function_app_name deve ter 2-60 chars, letras/números/hífens, não iniciar/terminar com hífen."
+  }
+}
+
+variable "function_app_service_plan_sku" {
+  description = "SKU do App Service Plan para a Function (Y1 consumo, EPx premium, Bx/Sx dedicado)."
+  type        = string
+  default     = "Y1"
+  validation {
+    condition     = can(regex("^(?i)(Y1|EP1|EP2|EP3|B1|B2|B3|S1|S2|S3)$", var.function_app_service_plan_sku))
+    error_message = "Valor inválido para function_app_service_plan_sku."
+  }
+}
+
+variable "function_runtime_stack" {
+  description = "Runtime principal da Function (python|node|dotnet|java|powershell)."
+  type        = string
+  default     = "python"
+  validation {
+    condition     = can(regex("^(?i)(python|node|dotnet|java|powershell)$", var.function_runtime_stack))
+    error_message = "function_runtime_stack inválido."
+  }
+}
+
+variable "function_runtime_version" {
+  description = "Versão do runtime (ex: 3.11 para Python, 18 para Node, v8.0 para dotnet)."
+  type        = string
+  default     = "3.11"
+}
+
+variable "function_enable_application_insights" {
+  description = "Se true cria Application Insights para a Function."
+  type        = bool
+  default     = true
+}
+
+variable "function_always_on" {
+  description = "Habilitar Always On (ignorado se SKU consumo Y1)."
+  type        = bool
+  default     = false
+}
+
+variable "function_app_settings" {
+  description = "Mapa adicional de APP SETTINGS para a Function."
+  type        = map(string)
+  default     = {}
+}
+
+variable "function_identity_type" {
+  description = "Tipo de identidade gerenciada (SystemAssigned|UserAssigned|SystemAssigned,UserAssigned)."
+  type        = string
+  default     = "SystemAssigned"
+  validation {
+    condition     = can(regex("^(SystemAssigned|UserAssigned|SystemAssigned,UserAssigned)$", var.function_identity_type))
+    error_message = "function_identity_type inválido."
+  }
+}
+
+variable "function_user_assigned_identity_ids" {
+  description = "Lista de IDs de identidades atribuídas pelo usuário para a Function (se aplicável)."
+  type        = list(string)
+  default     = []
+}
+
+variable "function_storage_account_name" {
+  description = "Nome de Storage Account existente para a Function (se null módulo cria um novo)."
+  type        = string
+  default     = null
+  validation {
+    condition = var.function_storage_account_name == null || can(regex("^[a-z0-9]{3,24}$", var.function_storage_account_name))
+    error_message = "function_storage_account_name deve atender regras de Storage (3-24 chars minúsculos/números)."
+  }
+}

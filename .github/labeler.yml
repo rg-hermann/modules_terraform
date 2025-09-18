@@ -1,0 +1,9 @@
+# Labeler rules: path -> labels
+modules/aks/: [aks, infrastructure]
+modules/keyvault/: [keyvault, security]
+modules/vnet/: [network]
+modules/acr/: [acr, container]
+modules/log_analytics/: [observability]
+modules/azure_function/: [functions, runtime]
+.github/: [ci]
+**/*.md: [documentation]
