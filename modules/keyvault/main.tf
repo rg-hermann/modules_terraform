@@ -7,7 +7,8 @@ resource "azurerm_key_vault" "this" {
   location                      = var.location
   resource_group_name           = var.resource_group_name
   tenant_id                     = var.tenant_id
-  sku_name                      = upper(var.sku_name)
+  # Key Vault aceita 'standard' ou 'premium' (case-insensitive). Normalizamos para lower-case.
+  sku_name                      = lower(var.sku_name)
   purge_protection_enabled      = true
   soft_delete_retention_days    = 7
   public_network_access_enabled = true
