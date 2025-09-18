@@ -25,6 +25,35 @@ variable "kubernetes_version" {
   type        = string
   default     = "1.28.3"
 }
+variable "api_server_authorized_ip_ranges" {
+  description = "Lista de IPs/CIDRs autorizados a acessar o API Server do AKS (vazio = sem restrição)."
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_private_cluster" {
+  description = "Se true habilita AKS private cluster."
+  type        = bool
+  default     = false
+}
+
+variable "network_plugin" {
+  description = "Plugin de rede do AKS (azure|kubenet)."
+  type        = string
+  default     = "azure"
+}
+
+variable "network_policy" {
+  description = "Network policy (azure|calico)."
+  type        = string
+  default     = "azure"
+}
+
+variable "aks_log_analytics_workspace_id" {
+  description = "ID de um Log Analytics Workspace existente para o AKS (se null e módulo log_analytics criado, pode referenciar manualmente depois)."
+  type        = string
+  default     = null
+}
 variable "keyvault_name" {
   description = "Nome do Key Vault"
   type        = string
@@ -44,6 +73,29 @@ variable "sku_name" {
   description = "SKU do Key Vault (Standard ou Premium)"
   type        = string
   default     = "standard"
+}
+variable "public_network_access_enabled" {
+  description = "Key Vault público (true) ou exigir network_acls (false)."
+  type        = bool
+  default     = false
+}
+
+variable "network_acls_allowed_ips" {
+  description = "IPs/CIDRs permitidos no Key Vault."
+  type        = list(string)
+  default     = []
+}
+
+variable "network_acls_virtual_network_subnet_ids" {
+  description = "Subnets autorizadas ao Key Vault."
+  type        = list(string)
+  default     = []
+}
+
+variable "network_acls_bypass" {
+  description = "Bypass de serviços para o Key Vault (AzureServices|None)."
+  type        = string
+  default     = "AzureServices"
 }
 variable "subscription_id" {
   description = "ID da subscription Azure"

@@ -78,6 +78,10 @@ module "keyvault" {
   tenant_id           = var.tenant_id
   object_id           = var.object_id
   sku_name            = var.sku_name
+  public_network_access_enabled        = var.public_network_access_enabled
+  network_acls_allowed_ips             = var.network_acls_allowed_ips
+  network_acls_virtual_network_subnet_ids = var.network_acls_virtual_network_subnet_ids
+  network_acls_bypass                  = var.network_acls_bypass
   tags                = local.base_tags
 }
 
@@ -93,6 +97,11 @@ module "aks" {
   public_subnet_route_table_id = module.vnet.public_subnet_route_table_id
   keyvault_id                  = module.keyvault.keyvault_id
   kubernetes_version           = var.kubernetes_version
+  api_server_authorized_ip_ranges = var.api_server_authorized_ip_ranges
+  enable_private_cluster          = var.enable_private_cluster
+  network_plugin                  = var.network_plugin
+  network_policy                  = var.network_policy
+  log_analytics_workspace_id      = var.aks_log_analytics_workspace_id
   tags                         = local.base_tags
 }
 

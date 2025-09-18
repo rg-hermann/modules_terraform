@@ -23,6 +23,11 @@ Este módulo cria um cluster AKS integrado à VNet e ao Key Vault.
 | keyvault_id          | string    | -                 | ID do Key Vault para secrets               |
 | kubernetes_version   | string    | 1.28.3            | Versão do Kubernetes                       |
 | public_subnet_route_table_id | string | -             | ID da route table da subnet pública        |
+| api_server_authorized_ip_ranges | list(string) | []  | IPs/CIDRs permitidos no API Server (restrinja em prod) |
+| enable_private_cluster | bool | false | Habilita private cluster (API interna) |
+| network_plugin        | string | azure | Plugin de rede (azure|kubenet) |
+| network_policy        | string | azure | Network policy provider (azure|calico) |
+| log_analytics_workspace_id | string | null | ID de workspace existente para logging (OMS) |
 
 ## Outputs
 | Nome         | Descrição                                      |
@@ -53,5 +58,14 @@ module "aks" {
   subnet_id           = module.vnet.public_subnet_id
   keyvault_id         = module.keyvault.keyvault_id
   kubernetes_version  = "1.28.3"
+  api_server_authorized_ip_ranges = ["177.10.10.10/32"]
+  network_policy                  = "azure"
+  network_plugin                  = "azure"
 }
 ```
+
+## Notas de Segurança
+- Defina `api_server_authorized_ip_ranges` para restringir acesso ao control plane.
+- Considere `enable_private_cluster = true` em ambientes sensíveis.
+- Use `network_policy` (azure ou calico) para aplicar isolamento de tráfego.
+- Forneça `log_analytics_workspace_id` para habilitar logging de cluster.
