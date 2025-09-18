@@ -53,11 +53,18 @@ jobs:
       - name: Terraform Validate
         run: terraform -chdir=. validate
 
-      - name: Install TFLint
-        run: |
-          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-          sudo mv ~/.tflint/bin/tflint /usr/local/bin/
-          tflint --version
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: ${{ env.TFLINT_VERSION }}
+
+      - name: Cache TFLint plugin dir
+        uses: actions/cache@v4
+        with:
+          path: ~/.tflint.d/plugins
+          key: tflint-${{ runner.os }}-${{ env.TFLINT_VERSION }}-${{ hashFiles('.tflint.hcl') }}
+          restore-keys: |
+            tflint-${{ runner.os }}-
 
       - name: TFLint Init
         run: tflint --init
