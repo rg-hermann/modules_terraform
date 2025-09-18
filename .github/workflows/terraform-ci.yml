@@ -181,3 +181,67 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           additional_args: --config-file .tfsec.yml --minimum-severity MEDIUM
+
+  trivy:
+    name: Trivy IaC Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Trivy cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/trivy
+          key: trivy-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            trivy-${{ runner.os }}-
+
+      - name: Trivy Config (Terraform) Scan
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          scan-type: config
+          format: sarif
+          output: trivy-terraform.sarif
+          severity: HIGH,CRITICAL,MEDIUM
+          ignore-unfixed: true
+          skip-dirs: .git,.github/,.terraform/
+          hide-progress: true
+        env:
+          TRIVY_ARG_0: ""
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-terraform.sarif
+
+      - name: Extract Trivy summary
+        id: trivy_summary
+        run: |
+          issues=$(jq '.runs[0].results | length' trivy-terraform.sarif)
+          echo "issues=$issues" >> $GITHUB_OUTPUT
+          critical=$(jq '[.runs[0].results[] | select(.level=="error")]|length' trivy-terraform.sarif || echo 0)
+          echo "critical=$critical" >> $GITHUB_OUTPUT
+          echo "Trivy found $issues issues (critical=$critical)"
+
+      - name: Comment PR with Trivy summary
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            ### Trivy IaC Scan
+            Issues: `${{ steps.trivy_summary.outputs.issues }}` (critical errors: `${{ steps.trivy_summary.outputs.critical }}`)
+            SARIF uploaded (Security tab -> Code scanning alerts).
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          allow-repeats: false
+
+      - name: Fail on findings (>=MEDIUM)
+        run: |
+          if [ "${{ steps.trivy_summary.outputs.issues }}" -gt 0 ]; then
+            echo "Failing due to Trivy findings (>= MEDIUM)." >&2
+            exit 1
+          fi

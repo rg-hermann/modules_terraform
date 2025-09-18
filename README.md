@@ -244,11 +244,24 @@ Caso opte por OIDC (recomendado), será necessário adicionar uma Federated Cred
 ### Lint & Segurança
 - `tflint` garante padrões de estilo e potenciais erros de provider.
 - `tfsec` roda em dois modos: um permissivo (não falha o pipeline principal) e um estrito (falha se severidade >= MEDIUM). Ajustável via `.tfsec.yml`.
+- `Trivy` (novo) realiza varredura IaC (config) e gera SARIF publicado na aba Security (Code scanning). Substitui gradualmente tfsec (mantido por compatibilidade enquanto migração acontece).
 
-### Boas Práticas Seguidas
-- `TF_IN_AUTOMATION` e `TF_INPUT=0` para execuções não interativas.
-- Cache de plugins Terraform reduz tempo de execução.
-- `plan` não executa `apply` automaticamente em PR (segurança / revisão).
+#### Rodando Trivy localmente
+```sh
+# Scan de configuração Terraform (diretório atual)
+trivy config . --severity MEDIUM,HIGH,CRITICAL --ignore-unfixed --skip-dirs .terraform
+
+# Gerar relatório SARIF local
+trivy config . --format sarif --output trivy-terraform.sarif
+
+# Usar arquivo de ignore (opcional)
+trivy config . --ignorefile .trivyignore
+```
+
+#### Política de ignores
+- Cada regra ignorada deve ter justificativa e data de revisão.
+- Evitar crescimento de exceções permanentes.
+- Revisar `.trivyignore` periodicamente.
 
 ### Como Rodar Localmente (para reproduzir CI)
 ```sh

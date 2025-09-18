@@ -1,0 +1,5 @@
+# Trivy ignore file
+# Formato: <RULE-ID>#<justificativa>
+# Exemplo (NÃO deixe sem justificativa):
+# AVX0001#Uso temporário até refatoração em <DATA>
+# Mantenha este arquivo pequeno. Revise entradas periodicamente.
