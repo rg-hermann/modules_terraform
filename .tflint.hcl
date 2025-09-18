@@ -5,7 +5,7 @@ plugin "azurerm" {
 }
 
 config {
-  module = true
+  call_module_type = true
 }
 
 rule "terraform_required_providers" { enabled = true }
