@@ -37,6 +37,16 @@ output "aks_api_server_endpoint" {
   description = "Endpoint da API do cluster AKS"
   value       = module.aks.api_server_endpoint
 }
+
+output "acr_id" {
+  description = "ID do Azure Container Registry (se criado)"
+  value       = try(module.acr[0].acr_id, null)
+}
+
+output "acr_login_server" {
+  description = "Login server do ACR (se criado)"
+  value       = try(module.acr[0].acr_login_server, null)
+}
 output "resource_group_name" {
   description = "Nome do Resource Group criado para o backend"
   value       = azurerm_resource_group.tfstate.name

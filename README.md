@@ -12,6 +12,7 @@ Este repositório contém módulos Terraform reutilizáveis para provisionamento
 - **VNet:** Criação de rede virtual com subnets públicas e privadas, NSGs e route tables customizadas.
 - **Key Vault:** Provisionamento de Azure Key Vault com políticas de acesso seguras.
 - **AKS:** Cluster Kubernetes integrado à VNet e Key Vault, com identidade gerenciada.
+- **ACR (novo):** Registro de container opcional com concessão automática de `AcrPull` para o AKS.
 
 ## Como Usar (Fluxo Local / Backend Local)
 1. **Clone o repositório:**
@@ -82,6 +83,9 @@ tenant_id           = "<tenant>"
 object_id           = "<object>"
 storage_account_name   = "rghstorage01"
 storage_container_name = "tfstate"
+acr_name               = "rghacrdev01"
+acr_sku                = "Basic"
+acr_assign_aks_pull    = true
 ```
 
 ## Estrutura do Projeto
@@ -113,7 +117,7 @@ modules_terraform/
 ## Próximos Passos / Melhorias Futuras
 - Adicionar Azure Monitor / Log Analytics workspace para o AKS.
 - Implementar Azure CNI / Network Policies avançadas.
-- Integrar com Azure Container Registry (ACR) e dar permissão à Managed Identity.
+- ACR: habilitar private link / políticas de conteúdo / retenção.
 - Adicionar Private Endpoints para Key Vault.
 - Pipeline CI (GitHub Actions) com `terraform fmt` / `validate` / `plan`.
 

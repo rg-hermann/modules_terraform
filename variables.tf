@@ -118,3 +118,34 @@ variable "tags" {
     project     = "demo"
   }
 }
+
+# =============================
+# ACR (Azure Container Registry)
+# =============================
+variable "acr_name" {
+  description = "Nome do Azure Container Registry (5-50 chars, minúsculo e único global). Se null, ACR não será criado."
+  type        = string
+  default     = null
+  validation {
+    condition = var.acr_name == null || (
+      length(var.acr_name) >= 5 && length(var.acr_name) <= 50 && can(regex("^[a-z0-9]+$", var.acr_name))
+    )
+    error_message = "acr_name deve ter 5-50 caracteres apenas com letras minúsculas e números."
+  }
+}
+
+variable "acr_sku" {
+  description = "SKU do ACR (Basic, Standard, Premium)."
+  type        = string
+  default     = "Basic"
+  validation {
+    condition     = can(regex("^(?i)(Basic|Standard|Premium)$", var.acr_sku))
+    error_message = "acr_sku deve ser Basic, Standard ou Premium."
+  }
+}
+
+variable "acr_assign_aks_pull" {
+  description = "Se true e AKS existir, atribui role 'AcrPull' para a Managed Identity do AKS."
+  type        = bool
+  default     = true
+}

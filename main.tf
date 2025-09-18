@@ -89,3 +89,16 @@ module "aks" {
   tags                         = local.base_tags
 }
 
+# Criação opcional do ACR
+module "acr" {
+  count               = var.acr_name == null ? 0 : 1
+  source              = "./modules/acr"
+  acr_name            = var.acr_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  acr_sku             = var.acr_sku
+  tags                = local.base_tags
+  assign_aks_pull     = var.acr_assign_aks_pull
+  aks_principal_id    = module.aks.aks_principal_id
+}
+
