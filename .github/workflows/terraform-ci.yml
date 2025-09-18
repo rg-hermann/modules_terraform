@@ -1,0 +1,134 @@
+name: terraform-ci
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  TF_IN_AUTOMATION: true
+  TF_INPUT: 0
+  TERRAFORM_VERSION: 1.9.5
+  TFLINT_VERSION: v0.53.0
+  TFSecVersion: latest
+
+jobs:
+  terraform:
+    name: Lint, Validate & Plan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.terraform.d/plugin-cache
+          key: terraform-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: |
+            terraform-${{ runner.os }}-
+
+      - name: Terraform Init
+        run: |
+          terraform -chdir=. init -input=false
+
+      - name: Terraform Format Check
+        run: terraform -chdir=. fmt -check -recursive
+
+      - name: Terraform Validate
+        run: terraform -chdir=. validate
+
+      - name: Install TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          mv tflint /usr/local/bin/
+
+      - name: TFLint Init
+        run: tflint --init
+
+      - name: TFLint Run
+        run: tflint -f compact
+
+      - name: Install tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          additional_args: --config-file .tfsec.yml --concise-output --soft-fail
+        continue-on-error: true
+
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: |
+          terraform -chdir=. plan -no-color -out=tfplan.bin > plan.txt || true
+          # Always succeed but capture status
+          if grep -q "Error:" plan.txt; then
+            echo "plan_failed=true" >> $GITHUB_OUTPUT
+          else
+            echo "plan_failed=false" >> $GITHUB_OUTPUT
+          fi
+          echo 'snippet<<EOF' >> $GITHUB_OUTPUT
+          head -n 200 plan.txt >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Upload Plan Artifact
+        if: steps.plan.outcome == 'success' && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: plan.txt
+
+      - name: Comment PR with Plan Summary
+        if: github.event_name == 'pull_request'
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            ### Terraform Plan Result
+            Plan run on commit `${{ github.sha }}`.
+
+            Plan status: `${{ steps.plan.outputs.plan_failed == 'true' && 'FAILED' || 'SUCCESS' }}`
+
+            Download the full plan artifact from the Actions run if truncation occurred.
+            <details>
+            <summary>Plan (first 200 lines)</summary>
+            
+            ```
+            ${{ steps.plan.outputs.snippet }}
+            ```
+            </details>
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          allow-repeats: false
+
+      - name: Failing if Plan Failed
+        if: steps.plan.outputs.plan_failed == 'true'
+        run: |
+          echo "Terraform plan encountered errors." >&2
+          exit 1
+
+  security:
+    name: Security (tfsec strict)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tfsec (fail on issues)
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          additional_args: --config-file .tfsec.yml --minimum-severity MEDIUM

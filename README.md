@@ -120,11 +120,72 @@ modules_terraform/
 - git-crypt (opcional, para criptografia de secrets)
 
 ## Próximos Passos / Melhorias Futuras
-- Adicionar Azure Monitor / Log Analytics workspace para o AKS.
+- Integrar diagnósticos do AKS / Key Vault / Storage ao Log Analytics (Diagnostic Settings).
 - Implementar Azure CNI / Network Policies avançadas.
-- ACR: habilitar private link / políticas de conteúdo / retenção.
-- Adicionar Private Endpoints para Key Vault.
-- Pipeline CI (GitHub Actions) com `terraform fmt` / `validate` / `plan`.
+- ACR: habilitar private link / políticas de conteúdo / retenção / tasks automatizadas.
+- Adicionar Private Endpoints para Key Vault e Storage.
+- Pipeline de Apply manual com aprovação (GitHub Actions) e proteção de branch.
+- Testes (Terratest) para módulos críticos.
+- Integração de Azure Policy / drift detection.
+- Workload Identity (OIDC federado) para workloads no AKS.
+
+## CI/CD (GitHub Actions)
+Um workflow de CI (`terraform-ci`) foi adicionado para validar mudanças automaticamente.
+
+### Workflows Disponíveis
+1. `terraform-ci` (automático em PR e push):
+   - `terraform fmt -check`
+   - `terraform validate`
+   - `tflint` (com plugin azurerm)
+   - `tfsec` (job suave + job estrito separado)
+   - `terraform plan` (somente em pull requests) e upload como artefato
+   - Comentário no PR com resumo do plano
+2. (Planejado) `terraform-apply`:
+   - Disparado manualmente via `workflow_dispatch`
+   - Reutiliza o plano gerado ou recria em ambiente controlado
+   - Exige approvals de revisão
+
+### Requisitos de Secrets (para backend remoto / apply futuro)
+Configurar em `Settings > Secrets and variables > Actions`:
+- `ARM_CLIENT_ID` (se usar Service Principal - opcional caso use OIDC)
+- `ARM_CLIENT_SECRET` (se usar Service Principal)
+- `ARM_TENANT_ID`
+- `ARM_SUBSCRIPTION_ID`
+
+Caso opte por OIDC (recomendado), será necessário adicionar uma Federated Credential no Entra ID apontando para o repositório (GitHub). O workflow poderá então trocar para um passo de login:
+```
+- uses: azure/login@v2
+  with:
+    client-id: ${{ secrets.AZURE_CLIENT_ID }}
+    tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+    subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+```
+
+### Lint & Segurança
+- `tflint` garante padrões de estilo e potenciais erros de provider.
+- `tfsec` roda em dois modos: um permissivo (não falha o pipeline principal) e um estrito (falha se severidade >= MEDIUM). Ajustável via `.tfsec.yml`.
+
+### Boas Práticas Seguidas
+- `TF_IN_AUTOMATION` e `TF_INPUT=0` para execuções não interativas.
+- Cache de plugins Terraform reduz tempo de execução.
+- `plan` não executa `apply` automaticamente em PR (segurança / revisão).
+
+### Como Rodar Localmente (para reproduzir CI)
+```sh
+terraform fmt -recursive
+terraform init
+terraform validate
+tflint --init && tflint
+tfsec .
+terraform plan -var-file=env/dev.tfvars
+```
+
+### Próximos Passos para o Apply Automatizado
+- Criar workflow `terraform-apply.yml` somente manual.
+- Usar `-lock-timeout=5m` e `-input=false`.
+- Opcional: Armazenar plano como artefato e reutilizar (mesmo commit) para impedir TOCTOU.
+
+---
 
 ## Comandos Úteis
 ```sh

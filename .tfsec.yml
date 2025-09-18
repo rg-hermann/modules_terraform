@@ -1,0 +1,4 @@
+severity_overrides: {}
+exclude: []
+soft_fail: false
+config_version: 1
