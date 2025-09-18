@@ -21,16 +21,23 @@ locals {
     environment = lookup(var.tags, "environment", "dev")
     managed_by  = "terraform"
   }, var.tags)
+
+  # Normalização do prefixo para garantir conformidade (minúsculo / sem espaços)
+  normalized_prefix = lower(replace(var.prefix, " ", "-"))
+
+  # Exemplos de nomes derivados caso queira padronizar futuramente
+  inferred_resource_group_name = var.resource_group_name != "" ? var.resource_group_name : "rg-${local.normalized_prefix}"
+  inferred_storage_account_name = var.storage_account_name != "" ? var.storage_account_name : "${replace(local.normalized_prefix, "-", "") }sa"
 }
 
 resource "azurerm_resource_group" "tfstate" {
-  name     = var.resource_group_name
+  name     = local.inferred_resource_group_name
   location = var.location
   tags     = local.base_tags
 }
 
 resource "azurerm_storage_account" "tfstate" {
-  name                            = var.storage_account_name
+  name                            = local.inferred_storage_account_name
   resource_group_name             = azurerm_resource_group.tfstate.name
   location                        = azurerm_resource_group.tfstate.location
   account_tier                    = "Standard"
