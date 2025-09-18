@@ -67,9 +67,31 @@ jobs:
             tflint-${{ runner.os }}-
 
       - name: TFLint Init
-        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Using TFLint plugin azurerm version pinned in .tflint.hcl"
+          if ! tflint --init; then
+            echo "init_failed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "init_failed=false" >> $GITHUB_OUTPUT
+          tflint --version
+        id: tflint_init
+
+      - name: Debug TFLint Plugin Releases (azurerm)
+        if: steps.tflint_init.outputs.init_failed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Listing latest azurerm plugin releases (for troubleshooting)..." >&2
+          curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
+            https://api.github.com/repos/terraform-linters/tflint-ruleset-azurerm/releases \
+            | jq '.[0:10] | map({tag: .tag_name, published: .published_at})'
+          echo "Consider updating version in .tflint.hcl if the pinned one is missing." >&2
 
       - name: TFLint Run
+        if: steps.tflint_init.outputs.init_failed == 'false'
         run: tflint -f compact
 
       - name: Install tfsec
