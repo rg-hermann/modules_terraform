@@ -15,7 +15,7 @@ output "default_hostname" {
 
 output "principal_id" {
   description = "Principal ID da identidade gerenciada (system)"
-  value       = azurerm_linux_function_app.this.identity[0].principal_id
+  value       = try(azurerm_linux_function_app.this.identity[0].principal_id, null)
   sensitive   = false
 }
 
