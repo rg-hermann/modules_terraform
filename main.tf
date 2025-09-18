@@ -102,3 +102,16 @@ module "acr" {
   aks_principal_id    = module.aks.aks_principal_id
 }
 
+# Log Analytics opcional
+module "log_analytics" {
+  count               = var.log_analytics_workspace_name == null ? 0 : 1
+  source              = "./modules/log_analytics"
+  workspace_name      = var.log_analytics_workspace_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  sku                 = var.log_analytics_sku
+  retention_days      = var.log_analytics_retention_days
+  tags                = local.base_tags
+  enable_diagnostics  = var.enable_diagnostics
+}
+

@@ -149,3 +149,44 @@ variable "acr_assign_aks_pull" {
   type        = bool
   default     = true
 }
+
+# =============================
+# Log Analytics Workspace
+# =============================
+variable "log_analytics_workspace_name" {
+  description = "Nome do Log Analytics Workspace (se null não cria)."
+  type        = string
+  default     = null
+  validation {
+    condition = var.log_analytics_workspace_name == null || (
+      length(var.log_analytics_workspace_name) >= 4 && length(var.log_analytics_workspace_name) <= 63
+    )
+    error_message = "log_analytics_workspace_name deve ter 4-63 caracteres."
+  }
+}
+
+variable "log_analytics_sku" {
+  description = "SKU do workspace (PerGB2018 / Free / Standalone / CapacityReservation)."
+  type        = string
+  default     = "PerGB2018"
+  validation {
+    condition     = can(regex("^(?i)(PerGB2018|Free|Standalone|CapacityReservation)$", var.log_analytics_sku))
+    error_message = "log_analytics_sku inválido."
+  }
+}
+
+variable "log_analytics_retention_days" {
+  description = "Retenção de dados em dias (30-730)."
+  type        = number
+  default     = 30
+  validation {
+    condition     = var.log_analytics_retention_days >= 30 && var.log_analytics_retention_days <= 730
+    error_message = "retention deve estar entre 30 e 730 dias."
+  }
+}
+
+variable "enable_diagnostics" {
+  description = "Se true, cria Diagnostic Settings para recursos suportados (AKS, Key Vault, Storage, ACR)."
+  type        = bool
+  default     = true
+}

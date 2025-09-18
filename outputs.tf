@@ -47,6 +47,16 @@ output "acr_login_server" {
   description = "Login server do ACR (se criado)"
   value       = try(module.acr[0].acr_login_server, null)
 }
+
+output "log_analytics_workspace_id" {
+  description = "ID do Log Analytics Workspace (se criado)"
+  value       = try(module.log_analytics[0].log_analytics_workspace_id, null)
+}
+
+output "log_analytics_customer_id" {
+  description = "Customer ID do Log Analytics (se criado)"
+  value       = try(module.log_analytics[0].log_analytics_customer_id, null)
+}
 output "resource_group_name" {
   description = "Nome do Resource Group criado para o backend"
   value       = azurerm_resource_group.tfstate.name
