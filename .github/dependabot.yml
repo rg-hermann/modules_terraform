@@ -4,10 +4,23 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+      time: "03:00"
+      timezone: "UTC"
+    # Limita quantidade de PRs abertas simultaneamente
     open-pull-requests-limit: 5
-    labels:
-      - ci
-      - dependencies
     commit-message:
       prefix: "chore"
       include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    reviewers: []
+    assignees: []
+    # Agrupamento de updates menores
+    groups:
+      actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
