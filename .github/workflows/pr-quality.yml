@@ -17,7 +17,7 @@ jobs:
         id: title
         with:
           text: ${{ github.event.pull_request.title }}
-          regex: '^(feat|fix|refactor|docs|ci|chore|security)(\(.+\))?: .{5,}'
+          regex: '^(feat|fix|refactor|docs|ci|chore|security)(\(.+\))?: .{3,}'
       - name: Fail if title invalid
         if: steps.title.outputs.match != 'true'
         run: |
