@@ -104,3 +104,4 @@ variable "storage_account_connection_string" {
     error_message = "Quando reutilizando um storage (storage_account_name != null) é obrigatório informar storage_account_access_key e storage_account_connection_string."
   }
 }
+# Updated 1765335467
