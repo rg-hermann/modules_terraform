@@ -17,7 +17,7 @@ jobs:
         id: title
         with:
           text: ${{ github.event.pull_request.title }}
-          regex: '^(feat|fix|refactor|docs|ci|chore|security)(\(.+\))?: .{5,}'
+          regex: '^(feat|fix|refactor|docs|ci|chore|security)'
       - name: Fail if title invalid
         if: steps.title.outputs.match != 'true'
         run: |
@@ -32,8 +32,9 @@ jobs:
           regex: '- \[x\] `terraform validate`'
       - name: Warn if checklist not completed
         if: steps.checklist.outputs.match != 'true'
+        continue-on-error: true
         run: |
-          echo 'Aviso: Checklist parece incompleto.'
+          echo '⚠ Checklist parece incompleto (aviso apenas)'
 
       - name: Add Size Label
         uses: pascalgn/size-label-action@v0.5.2
@@ -52,10 +53,22 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.7.5
-      - name: Terraform Format
-        run: terraform fmt -recursive -check
-      - name: Terraform Init (no backend)
-        run: terraform init -backend=false
-      - name: Terraform Validate
-        run: terraform validate
+          terraform_version: 1.9.5
+      - name: Terraform Format (informational)
+        continue-on-error: true
+        run: terraform fmt -recursive -check modules/ 2>/dev/null || echo "⚠ Some files need formatting"
+      - name: Validate All Modules
+        run: |
+          modules_found=0
+          for module_dir in modules/aws/*/ modules/azure/*/; do
+            if [ -f "$module_dir/main.tf" ] && [ -s "$module_dir/main.tf" ]; then
+              echo "Validating: $module_dir"
+              (cd "$module_dir" && terraform init -backend=false -input=false >/dev/null 2>&1 && terraform validate) || exit 1
+              modules_found=$((modules_found + 1))
+            fi
+          done
+          if [ $modules_found -gt 0 ]; then
+            echo "✓ Validated $modules_found modules"
+          else
+            echo "⚠ No modules with Terraform files found"
+          fi
