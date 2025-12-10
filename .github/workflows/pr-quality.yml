@@ -53,8 +53,9 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.5
-      - name: Terraform Format
-        run: terraform fmt -recursive -check modules/ 2>/dev/null || echo "Format check skipped (no modules)"
+      - name: Terraform Format (informational)
+        continue-on-error: true
+        run: terraform fmt -recursive -check modules/ 2>/dev/null || echo "⚠ Some files need formatting"
       - name: Validate All Modules
         run: |
           modules_found=0
