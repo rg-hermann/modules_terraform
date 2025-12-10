@@ -32,8 +32,9 @@ jobs:
           regex: '- \[x\] `terraform validate`'
       - name: Warn if checklist not completed
         if: steps.checklist.outputs.match != 'true'
+        continue-on-error: true
         run: |
-          echo 'Aviso: Checklist parece incompleto.'
+          echo '⚠ Checklist parece incompleto (aviso apenas)'
 
       - name: Add Size Label
         uses: pascalgn/size-label-action@v0.5.2
