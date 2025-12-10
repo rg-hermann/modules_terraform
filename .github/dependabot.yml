@@ -1,12 +1,12 @@
 version: 2
 updates:
+  # GitHub Actions updates (monthly)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
       time: "03:00"
       timezone: "UTC"
-    # Limita quantidade de PRs abertas simultaneamente
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore"
@@ -14,9 +14,6 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
-    reviewers: []
-    assignees: []
-    # Agrupamento de updates menores
     groups:
       actions-minor-patch:
         patterns:
@@ -24,3 +21,26 @@ updates:
         update-types:
           - "minor"
           - "patch"
+
+  # Terraform lock file updates (weekly)
+  - package-ecosystem: "terraform"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "03:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(terraform)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "terraform"
+      - "provider-versions"
+    # Auto-merge patch updates only
+    auto-merge:
+      enabled: true
+      update-types:
+        - "patch"
+        - "minor"

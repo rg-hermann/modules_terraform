@@ -43,15 +43,18 @@ jobs:
           restore-keys: |
             terraform-${{ runner.os }}-
 
-      - name: Terraform Init
+      - name: Terraform Format Check (all)
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate (all modules)
         run: |
-          terraform -chdir=. init -input=false
-
-      - name: Terraform Format Check
-        run: terraform -chdir=. fmt -check -recursive
-
-      - name: Terraform Validate
-        run: terraform -chdir=. validate
+          for module_dir in modules/aws/*/ modules/azure/*/; do
+            if [ -f "$module_dir/main.tf" ]; then
+              echo "Validating: $module_dir"
+              (cd "$module_dir" && terraform init -backend=false -input=false >/dev/null && terraform validate) || exit 1
+            fi
+          done
+          echo "✓ All modules validated successfully"
 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
@@ -92,14 +95,21 @@ jobs:
 
       - name: TFLint Run
         if: steps.tflint_init.outputs.init_failed == 'false'
-        run: tflint -f compact
+        run: |
+          echo "Running TFLint on all modules..."
+          for module_dir in modules/aws/*/ modules/azure/*/; do
+            if [ -f "$module_dir/.tflint.hcl" ] || [ -f ".tflint.hcl" ]; then
+              echo "Linting: $module_dir"
+              (cd "$module_dir" && tflint -f compact) || true
+            fi
+          done
 
       - name: Install tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          additional_args: --config-file .tfsec.yml --concise-output --soft-fail
+          additional_args: --config-file .tfsec.yml --concise-output --soft-fail --recursive modules/
         continue-on-error: true
       # Exemplo alternativo (manual) com validação explícita de asset (descomentando se quiser controlar versão):
       # - name: Install tfsec (manual fallback)
@@ -245,3 +255,34 @@ jobs:
             echo "Failing due to Trivy findings (>= MEDIUM)." >&2
             exit 1
           fi
+
+  # Optional: GitHub Copilot code review (requires org/enterprise license)
+  # Uncomment to enable Copilot assistance on PRs
+  # copilot-review:
+  #   name: Copilot Code Review
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'pull_request'
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Copilot Review
+  #       uses: github/copilot-code-review-action@v1
+  #       with:
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Summary job for branch protection
+  check-status:
+    name: CI Status Check
+    runs-on: ubuntu-latest
+    needs: [terraform, security, trivy]
+    if: always()
+    steps:
+      - name: Check CI status
+        run: |
+          if [ "${{ needs.terraform.result }}" != "success" ] || \
+             [ "${{ needs.security.result }}" != "success" ] || \
+             [ "${{ needs.trivy.result }}" != "success" ]; then
+            echo "❌ CI checks failed"
+            exit 1
+          fi
+          echo "✅ All CI checks passed"

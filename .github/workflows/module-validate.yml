@@ -1,0 +1,85 @@
+name: module-validate
+
+on:
+  pull_request:
+    paths:
+      - 'modules/**'
+      - '.github/workflows/module-validate.yml'
+  push:
+    branches: [main, master]
+    paths:
+      - 'modules/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  TF_IN_AUTOMATION: true
+  TF_INPUT: 0
+  TERRAFORM_VERSION: 1.9.5
+
+jobs:
+  # Discover modules dynamically
+  discover:
+    name: Discover Modules
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.discover.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: discover
+        run: |
+          modules=$(find modules -name main.tf -type f | xargs dirname | jq -R -s -c 'split("\n")[:-1]')
+          echo "modules=$modules" >> $GITHUB_OUTPUT
+          echo "Found modules: $modules"
+
+  # Validate each module in parallel
+  validate:
+    name: Validate ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    needs: discover
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.discover.outputs.modules) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Validate ${{ matrix.module }}
+        run: |
+          cd "${{ matrix.module }}"
+          terraform init -backend=false -input=false
+          terraform validate
+          terraform fmt -check
+
+      - name: Comment on PR with validation status
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ Validation failed for module: `${{ matrix.module }}`\n\nPlease run `terraform validate` and `terraform fmt` locally.'
+            })
+
+  # Summary
+  validate-summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: validate
+    if: always()
+    steps:
+      - name: Check validation status
+        run: |
+          if [ "${{ needs.validate.result }}" != "success" ]; then
+            echo "❌ Module validation failed"
+            exit 1
+          fi
+          echo "✅ All modules validated"
