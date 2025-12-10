@@ -294,3 +294,4 @@ Pull requests são bem-vindos! Sinta-se à vontade para abrir issues ou sugerir 
 
 ## Licença
 Este projeto está sob a licença MIT.
+# Re-trigger workflow
