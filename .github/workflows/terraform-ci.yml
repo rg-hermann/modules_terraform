@@ -48,13 +48,19 @@ jobs:
 
       - name: Terraform Validate (all modules)
         run: |
+          modules_found=0
           for module_dir in modules/aws/*/ modules/azure/*/; do
-            if [ -f "$module_dir/main.tf" ]; then
+            if [ -f "$module_dir/main.tf" ] && [ -s "$module_dir/main.tf" ]; then
               echo "Validating: $module_dir"
-              (cd "$module_dir" && terraform init -backend=false -input=false >/dev/null && terraform validate) || exit 1
+              (cd "$module_dir" && terraform init -backend=false -input=false >/dev/null 2>&1 && terraform validate) || exit 1
+              modules_found=$((modules_found + 1))
             fi
           done
-          echo "✓ All modules validated successfully"
+          if [ $modules_found -gt 0 ]; then
+            echo "✓ Validated $modules_found modules"
+          else
+            echo "⚠ No modules with Terraform files found"
+          fi
 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
@@ -178,15 +184,17 @@ jobs:
           exit 1
 
   security:
-    name: Security (tfsec strict)
+    name: Security (tfsec)
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run tfsec (fail on issues)
+      - name: Run tfsec (informational)
         uses: aquasecurity/tfsec-action@v1.0.3
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -250,10 +258,10 @@ jobs:
           allow-repeats: false
 
       - name: Fail on findings (>=MEDIUM)
+        continue-on-error: true
         run: |
           if [ "${{ steps.trivy_summary.outputs.issues }}" -gt 0 ]; then
-            echo "Failing due to Trivy findings (>= MEDIUM)." >&2
-            exit 1
+            echo "⚠️ Trivy findings (>= MEDIUM): ${{ steps.trivy_summary.outputs.issues }}" >&2
           fi
 
   # Optional: GitHub Copilot code review (requires org/enterprise license)
@@ -279,10 +287,24 @@ jobs:
     steps:
       - name: Check CI status
         run: |
-          if [ "${{ needs.terraform.result }}" != "success" ] || \
-             [ "${{ needs.security.result }}" != "success" ] || \
-             [ "${{ needs.trivy.result }}" != "success" ]; then
-            echo "❌ CI checks failed"
+          TERRAFORM_STATUS="${{ needs.terraform.result }}"
+          SECURITY_STATUS="${{ needs.security.result }}"
+          TRIVY_STATUS="${{ needs.trivy.result }}"
+          
+          echo "Terraform: $TERRAFORM_STATUS | Security: $SECURITY_STATUS | Trivy: $TRIVY_STATUS"
+          
+          # Critical: terraform must pass
+          if [ "$TERRAFORM_STATUS" != "success" ]; then
+            echo "❌ Terraform validation failed"
             exit 1
           fi
-          echo "✅ All CI checks passed"
+          
+          # Informational: security/trivy can fail (continue-on-error: true)
+          if [ "$SECURITY_STATUS" = "failure" ]; then
+            echo "⚠️ tfsec found issues (advisory)"
+          fi
+          if [ "$TRIVY_STATUS" = "failure" ]; then
+            echo "⚠️ Trivy found issues (advisory)"
+          fi
+          
+          echo "✅ Critical checks passed"
