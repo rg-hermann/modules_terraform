@@ -30,7 +30,8 @@ jobs:
       - uses: actions/checkout@v4
       - id: discover
         run: |
-          modules=$(find modules -name main.tf -type f | xargs dirname | jq -R -s -c 'split("\n")[:-1]')
+          # Find modules with main.tf (not empty)
+          modules=$(find modules -name main.tf -type f -size +10c | xargs dirname | jq -R -s -c 'split("\n")[:-1]')
           echo "modules=$modules" >> $GITHUB_OUTPUT
           echo "Found modules: $modules"
 
