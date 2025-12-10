@@ -52,10 +52,15 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.7.5
+          terraform_version: 1.9.5
       - name: Terraform Format
-        run: terraform fmt -recursive -check
-      - name: Terraform Init (no backend)
-        run: terraform init -backend=false
-      - name: Terraform Validate
-        run: terraform validate
+        run: terraform fmt -recursive -check modules/
+      - name: Validate All Modules
+        run: |
+          for module_dir in modules/aws/*/ modules/azure/*/; do
+            if [ -f "$module_dir/main.tf" ]; then
+              echo "Validating: $module_dir"
+              (cd "$module_dir" && terraform init -backend=false -input=false >/dev/null && terraform validate) || exit 1
+            fi
+          done
+          echo "✓ All modules validated"
