@@ -1,60 +1,100 @@
-## Labeler configuration
-# actions/labeler@v5 requer que cada label possua uma lista de "config options".
-# Cada item dessa lista é um objeto (ex: changed-files/head-branch/base-branch) com suas condições.
-# Referência: https://github.com/actions/labeler
-# Padrão adotado: usamos apenas o matcher changed-files com any-glob-to-any-file.
+## Labeler configuration - https://github.com/actions/labeler
 
-aks:
+# ============================================================================
+# AWS LABELS
+# ============================================================================
+
+aws:
   - changed-files:
       any-glob-to-any-file:
-        - modules/aks/**
+        - modules/aws/**
 
-infrastructure:
+aws-vpc:
   - changed-files:
       any-glob-to-any-file:
-        - modules/aks/**
+        - modules/aws/vpc/**
 
-keyvault:
+aws-security:
   - changed-files:
       any-glob-to-any-file:
-        - modules/keyvault/**
+        - modules/aws/security_group/**
 
-security:
+aws-networking:
   - changed-files:
       any-glob-to-any-file:
-        - modules/keyvault/**
+        - modules/aws/vpc/**
+        - modules/aws/security_group/**
 
-network:
+aws-compute:
   - changed-files:
       any-glob-to-any-file:
-        - modules/vnet/**
+        - modules/aws/eks/**
+        - modules/aws/elb/**
 
-acr:
+aws-database:
   - changed-files:
       any-glob-to-any-file:
-        - modules/acr/**
+        - modules/aws/rds/**
 
-container:
+aws-storage:
   - changed-files:
       any-glob-to-any-file:
-        - modules/acr/**
+        - modules/aws/s3/**
 
-observability:
+aws-iam:
   - changed-files:
       any-glob-to-any-file:
-        - modules/log_analytics/**
+        - modules/aws/iam_role/**
 
-functions:
+# ============================================================================
+# AZURE LABELS
+# ============================================================================
+
+azure:
   - changed-files:
       any-glob-to-any-file:
-        - modules/azure_function/**
+        - modules/azure/**
 
-runtime:
+azure-vnet:
   - changed-files:
       any-glob-to-any-file:
-        - modules/azure_function/**
+        - modules/azure/vnet/**
+
+azure-networking:
+  - changed-files:
+      any-glob-to-any-file:
+        - modules/azure/vnet/**
+
+azure-storage:
+  - changed-files:
+      any-glob-to-any-file:
+        - modules/azure/storage_account/**
+
+azure-database:
+  - changed-files:
+      any-glob-to-any-file:
+        - modules/azure/postgresql/**
+
+azure-identity:
+  - changed-files:
+      any-glob-to-any-file:
+        - modules/azure/managed_identity/**
+
+azure-compute:
+  - changed-files:
+      any-glob-to-any-file:
+        - modules/azure/app_service/**
+
+# ============================================================================
+# CROSS-CUTTING LABELS
+# ============================================================================
 
 ci:
+  - changed-files:
+      any-glob-to-any-file:
+        - .github/workflows/**
+
+config:
   - changed-files:
       any-glob-to-any-file:
         - .github/**
@@ -63,3 +103,16 @@ documentation:
   - changed-files:
       any-glob-to-any-file:
         - '**/*.md'
+
+dependencies:
+  - changed-files:
+      any-glob-to-any-file:
+        - '.terraform.lock.hcl'
+        - 'versions.tf'
+
+root:
+  - changed-files:
+      any-glob-to-any-file:
+        - 'main.tf'
+        - 'variables.tf'
+        - 'outputs.tf'

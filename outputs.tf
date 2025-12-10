@@ -1,118 +1,57 @@
-output "vnet_id" {
-  description = "ID da Virtual Network criada pelo módulo vnet"
-  value       = module.vnet.vnet_id
-}
+# ============================================================================
+# AWS OUTPUTS (uncomment after merging AWS module PRs)
+# ============================================================================
 
-output "public_subnet_id" {
-  description = "ID da Subnet Pública criada pelo módulo vnet"
-  value       = module.vnet.public_subnet_id
-}
+# output "aws_vpc_id" {
+#   description = "AWS VPC ID"
+#   value       = try(module.aws_vpc[0].vpc_id, null)
+# }
 
-output "private_subnet_id" {
-  description = "ID da Subnet Privada criada pelo módulo vnet"
-  value       = module.vnet.private_subnet_id
-}
+# output "aws_security_group_id" {
+#   description = "AWS Security Group ID"
+#   value       = try(module.aws_security_group[0].security_group_id, null)
+# }
 
-output "keyvault_id" {
-  description = "ID do Key Vault criado pelo módulo keyvault"
-  value       = module.keyvault.keyvault_id
-}
+# output "aws_alb_dns_name" {
+#   description = "AWS ALB DNS name"
+#   value       = try(module.aws_load_balancer[0].alb_dns_name, null)
+# }
 
-output "keyvault_uri" {
-  description = "URI do Key Vault criado pelo módulo keyvault"
-  value       = module.keyvault.keyvault_uri
-}
+# output "aws_s3_bucket_id" {
+#   description = "AWS S3 bucket ID"
+#   value       = try(module.aws_s3[0].bucket_id, null)
+# }
 
-output "aks_id" {
-  description = "ID do cluster AKS criado pelo módulo aks"
-  value       = module.aks.aks_id
-}
+# output "aws_rds_endpoint" {
+#   description = "AWS RDS endpoint"
+#   value       = try(module.aws_rds[0].db_instance_endpoint, null)
+# }
 
-output "aks_kube_config" {
-  description = "Kubeconfig do cluster AKS criado pelo módulo aks"
-  value       = module.aks.kube_config
-  sensitive   = true
-}
-output "aks_api_server_endpoint" {
-  description = "Endpoint da API do cluster AKS"
-  value       = module.aks.api_server_endpoint
-}
+# ============================================================================
+# AZURE OUTPUTS (uncomment after merging Azure module PRs)
+# ============================================================================
 
-output "acr_id" {
-  description = "ID do Azure Container Registry (se criado)"
-  value       = try(module.acr[0].acr_id, null)
-}
+# output "azure_vnet_id" {
+#   description = "Azure VNet ID"
+#   value       = try(module.azure_vnet[0].vnet_id, null)
+# }
 
-output "acr_login_server" {
-  description = "Login server do ACR (se criado)"
-  value       = try(module.acr[0].acr_login_server, null)
-}
+# output "azure_storage_account_id" {
+#   description = "Azure Storage Account ID"
+#   value       = try(module.azure_storage[0].storage_account_id, null)
+# }
 
-output "log_analytics_workspace_id" {
-  description = "ID do Log Analytics Workspace (se criado)"
-  value       = try(module.log_analytics[0].log_analytics_workspace_id, null)
-}
+# output "azure_managed_identity_id" {
+#   description = "Azure Managed Identity ID"
+#   value       = try(module.azure_identity[0].id, null)
+# }
 
-output "log_analytics_customer_id" {
-  description = "Customer ID do Log Analytics (se criado)"
-  value       = try(module.log_analytics[0].log_analytics_customer_id, null)
-}
-output "resource_group_name" {
-  description = "Nome do Resource Group criado para o backend"
-  value       = azurerm_resource_group.tfstate.name
-}
+# output "azure_postgres_fqdn" {
+#   description = "Azure PostgreSQL FQDN"
+#   value       = try(module.azure_postgres[0].server_fqdn, null)
+# }
 
-output "storage_account_name" {
-  description = "Nome do Storage Account criado para o backend"
-  value       = azurerm_storage_account.tfstate.name
-}
-
-output "storage_container_name" {
-  description = "Nome do container criado para o backend"
-  value       = azurerm_storage_container.tfstate.name
-}
-
-output "storage_account_id" {
-  description = "ID do Storage Account criado para o backend"
-  value       = azurerm_storage_account.tfstate.id
-}
-
-output "storage_container_id" {
-  description = "ID do container criado para o backend"
-  value       = azurerm_storage_container.tfstate.id
-}
-
-# =============================
-# Azure Function (opcional)
-# =============================
-output "function_app_id" {
-  description = "ID da Function App (se criada)"
-  value       = try(module.azure_function[0].function_app_id, null)
-}
-
-output "function_app_name" {
-  description = "Nome da Function App (se criada)"
-  value       = try(module.azure_function[0].function_app_name, null)
-}
-
-output "function_app_default_hostname" {
-  description = "Hostname padrão da Function (se criada)"
-  value       = try(module.azure_function[0].default_hostname, null)
-}
-
-output "function_app_principal_id" {
-  description = "Principal ID da Function (se criada)"
-  value       = try(module.azure_function[0].principal_id, null)
-}
-
-output "function_app_insights_connection_string" {
-  description = "Connection string do App Insights da Function (se criado)"
-  value       = try(module.azure_function[0].app_insights_connection_string, null)
-  sensitive   = true
-}
-
-output "function_app_insights_instrumentation_key" {
-  description = "Instrumentation Key do App Insights da Function (se criado)"
-  value       = try(module.azure_function[0].app_insights_instrumentation_key, null)
-  sensitive   = true
-}
+# output "azure_app_service_hostname" {
+#   description = "Azure App Service hostname"
+#   value       = try(module.azure_app_service[0].default_site_hostname, null)
+# }

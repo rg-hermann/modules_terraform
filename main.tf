@@ -1,156 +1,153 @@
 terraform {
   required_version = ">= 1.5.0"
   required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 4.0"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.41.0"
+      version = ">= 3.0"
     }
   }
-  # Para ativar backend remoto posteriormente, descomente e ajuste:
-  # backend "azurerm" {}
 }
 
-provider "azurerm" {
-  features {}
-  subscription_id = var.subscription_id
-}
+# AWS Provider (uncomment if using AWS modules)
+# provider "aws" {
+#   region = var.aws_region
+# }
 
-# Tags base combinando tags padrão e específicas do workspace
+# Azure Provider (uncomment if using Azure modules)
+# provider "azurerm" {
+#   features {}
+#   subscription_id = var.subscription_id
+# }
+
 locals {
   base_tags = merge({
-    environment = lookup(var.tags, "environment", "dev")
+    environment = var.environment
     managed_by  = "terraform"
+    project     = var.project_name
   }, var.tags)
-
-  # Normalização do prefixo para garantir conformidade (minúsculo / sem espaços)
-  normalized_prefix = lower(replace(var.prefix, " ", "-"))
-
-  # Exemplos de nomes derivados caso queira padronizar futuramente
-  inferred_resource_group_name  = var.resource_group_name != "" ? var.resource_group_name : "rg-${local.normalized_prefix}"
-  inferred_storage_account_name = var.storage_account_name != "" ? var.storage_account_name : "${replace(local.normalized_prefix, "-", "")}sa"
-  # Workspace efetivo para logging do AKS: prioridade para variável explícita, senão output do módulo se criado
-  effective_log_analytics_workspace_id = var.aks_log_analytics_workspace_id != null ? var.aks_log_analytics_workspace_id : try(module.log_analytics[0].log_analytics_workspace_id, null)
 }
 
-resource "azurerm_resource_group" "tfstate" {
-  name     = local.inferred_resource_group_name
-  location = var.location
-  tags     = local.base_tags
-}
+# ============================================================================
+# AWS EXAMPLES (uncomment modules after merging PR #X)
+# ============================================================================
 
-resource "azurerm_storage_account" "tfstate" {
-  name                            = local.inferred_storage_account_name
-  resource_group_name             = azurerm_resource_group.tfstate.name
-  location                        = azurerm_resource_group.tfstate.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  min_tls_version                 = "TLS1_2"
-  tags                            = local.base_tags
-  allow_nested_items_to_be_public = false
-  public_network_access_enabled   = true
-  lifecycle {
-    prevent_destroy = false
-  }
-}
+# module "aws_vpc" {
+#   count              = var.enable_aws_vpc ? 1 : 0
+#   source             = "./modules/aws/vpc"
+#   cidr_block         = var.aws_vpc_cidr
+#   public_subnets    = var.aws_public_subnets
+#   availability_zones = var.aws_azs
+#   tags               = local.base_tags
+# }
 
-resource "azurerm_storage_container" "tfstate" {
-  name                  = var.storage_container_name
-  storage_account_id    = azurerm_storage_account.tfstate.id
-  container_access_type = "private"
-}
+# module "aws_security_group" {
+#   count  = var.enable_aws_security_group ? 1 : 0
+#   source = "./modules/aws/security_group"
+#   name   = "${var.project_name}-sg"
+#   vpc_id = var.enable_aws_vpc ? module.aws_vpc[0].vpc_id : null
+#   tags   = local.base_tags
+# }
 
-module "vnet" {
-  source                = "./modules/vnet"
-  vnet_name             = var.vnet_name
-  vnet_address_space    = var.vnet_address_space
-  location              = var.location
-  resource_group_name   = var.resource_group_name
-  public_subnet_name    = var.public_subnet_name
-  public_subnet_prefix  = var.public_subnet_prefix
-  private_subnet_name   = var.private_subnet_name
-  private_subnet_prefix = var.private_subnet_prefix
-  tags                  = local.base_tags
-}
+# module "aws_load_balancer" {
+#   count              = var.enable_aws_alb ? 1 : 0
+#   source             = "./modules/aws/elb"
+#   name               = "${var.project_name}-alb"
+#   subnets            = var.enable_aws_vpc ? module.aws_vpc[0].public_subnet_ids : []
+#   vpc_id             = var.enable_aws_vpc ? module.aws_vpc[0].vpc_id : null
+#   security_groups    = var.enable_aws_security_group ? [module.aws_security_group[0].security_group_id] : []
+#   target_group_name  = "${var.project_name}-tg"
+#   tags               = local.base_tags
+# }
 
-module "keyvault" {
-  source                                  = "./modules/keyvault"
-  keyvault_name                           = var.keyvault_name
-  location                                = var.location
-  resource_group_name                     = var.resource_group_name
-  tenant_id                               = var.tenant_id
-  object_id                               = var.object_id
-  sku_name                                = var.sku_name
-  public_network_access_enabled           = var.public_network_access_enabled
-  network_acls_allowed_ips                = var.network_acls_allowed_ips
-  network_acls_virtual_network_subnet_ids = var.network_acls_virtual_network_subnet_ids
-  network_acls_bypass                     = var.network_acls_bypass
-  tags                                    = local.base_tags
-}
+# module "aws_s3" {
+#   count      = var.enable_aws_s3 ? 1 : 0
+#   source     = "./modules/aws/s3"
+#   bucket     = "${var.project_name}-bucket"
+#   versioning = true
+#   tags       = local.base_tags
+# }
 
-# Log Analytics opcional (posicionado antes do AKS para permitir referência direta e melhor detecção por linters/security tools)
-module "log_analytics" {
-  count               = var.log_analytics_workspace_name == null ? 0 : 1
-  source              = "./modules/log_analytics"
-  workspace_name      = var.log_analytics_workspace_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  sku                 = var.log_analytics_sku
-  retention_days      = var.log_analytics_retention_days
-  tags                = local.base_tags
-  enable_diagnostics  = var.enable_diagnostics
-}
+# module "aws_rds" {
+#   count          = var.enable_aws_rds ? 1 : 0
+#   source         = "./modules/aws/rds"
+#   identifier     = "${var.project_name}-db"
+#   engine         = var.aws_db_engine
+#   instance_class = var.aws_db_instance_class
+#   username       = var.aws_db_username
+#   password       = var.aws_db_password
+#   tags           = local.base_tags
+# }
 
-module "aks" {
-  source                          = "./modules/aks"
-  aks_name                        = var.aks_name
-  location                        = var.location
-  resource_group_name             = var.resource_group_name
-  dns_prefix                      = var.dns_prefix
-  node_count                      = var.node_count
-  vm_size                         = var.vm_size
-  subnet_id                       = module.vnet.public_subnet_id
-  public_subnet_route_table_id    = module.vnet.public_subnet_route_table_id
-  keyvault_id                     = module.keyvault.keyvault_id
-  kubernetes_version              = var.kubernetes_version
-  api_server_authorized_ip_ranges = var.api_server_authorized_ip_ranges
-  enable_private_cluster          = var.enable_private_cluster
-  network_plugin                  = var.network_plugin
-  network_policy                  = var.network_policy
-  log_analytics_workspace_id      = local.effective_log_analytics_workspace_id
-  tags                            = local.base_tags
-}
+# ============================================================================
+# AZURE EXAMPLES (uncomment modules after merging PR #X)
+# ============================================================================
 
-# Criação opcional do ACR (após AKS para possível role assignment à identidade do cluster)
-module "acr" {
-  count               = var.acr_name == null ? 0 : 1
-  source              = "./modules/acr"
-  acr_name            = var.acr_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  acr_sku             = var.acr_sku
-  tags                = local.base_tags
-  assign_aks_pull     = var.acr_assign_aks_pull
-  aks_principal_id    = module.aks.aks_principal_id
-}
+# resource "azurerm_resource_group" "main" {
+#   count    = var.enable_azure ? 1 : 0
+#   name     = "rg-${var.project_name}"
+#   location = var.azure_location
+#   tags     = local.base_tags
+# }
 
-# Azure Function opcional
-module "azure_function" {
-  count                             = var.function_app_name == null ? 0 : 1
-  source                            = "./modules/azure_function"
-  function_app_name                 = var.function_app_name
-  location                          = var.location
-  resource_group_name               = var.resource_group_name
-  storage_account_name              = var.function_storage_account_name
-  app_service_plan_sku              = var.function_app_service_plan_sku
-  runtime_stack                     = var.function_runtime_stack
-  runtime_version                   = var.function_runtime_version
-  enable_application_insights       = var.function_enable_application_insights
-  always_on                         = var.function_always_on
-  app_settings                      = var.function_app_settings
-  identity_type                     = var.function_identity_type
-  user_assigned_identity_ids        = var.function_user_assigned_identity_ids
-  storage_account_access_key        = var.function_storage_account_access_key
-  storage_account_connection_string = var.function_storage_account_connection_string
-  tags                              = local.base_tags
-}
+# module "azure_vnet" {
+#   count               = var.enable_azure_vnet ? 1 : 0
+#   source              = "./modules/azure/vnet"
+#   name                = "vnet-${var.project_name}"
+#   resource_group_name = azurerm_resource_group.main[0].name
+#   location            = azurerm_resource_group.main[0].location
+#   address_space       = var.azure_vnet_address_space
+#   subnets = [
+#     {
+#       name             = "subnet-default"
+#       address_prefixes = var.azure_subnet_address_prefix
+#     }
+#   ]
+#   tags = local.base_tags
+# }
+
+# module "azure_storage" {
+#   count               = var.enable_azure_storage ? 1 : 0
+#   source              = "./modules/azure/storage_account"
+#   name                = "sa${replace(var.project_name, "-", "")}"
+#   resource_group_name = azurerm_resource_group.main[0].name
+#   location            = azurerm_resource_group.main[0].location
+#   tags                = local.base_tags
+# }
+
+# module "azure_identity" {
+#   count               = var.enable_azure_identity ? 1 : 0
+#   source              = "./modules/azure/managed_identity"
+#   name                = "id-${var.project_name}"
+#   resource_group_name = azurerm_resource_group.main[0].name
+#   location            = azurerm_resource_group.main[0].location
+#   tags                = local.base_tags
+# }
+
+# module "azure_postgres" {
+#   count               = var.enable_azure_postgres ? 1 : 0
+#   source              = "./modules/azure/postgresql"
+#   server_name         = "pgserver-${var.project_name}"
+#   location            = azurerm_resource_group.main[0].location
+#   resource_group_name = azurerm_resource_group.main[0].name
+#   admin_login         = var.azure_pg_admin_login
+#   admin_password      = var.azure_pg_admin_password
+#   sku_name            = var.azure_pg_sku
+#   tags                = local.base_tags
+# }
+
+# module "azure_app_service" {
+#   count                   = var.enable_azure_app_service ? 1 : 0
+#   source                  = "./modules/azure/app_service"
+#   app_service_name        = "app-${var.project_name}"
+#   app_service_plan_name   = "plan-${var.project_name}"
+#   location                = azurerm_resource_group.main[0].location
+#   resource_group_name     = azurerm_resource_group.main[0].name
+#   sku_tier                = var.azure_app_service_tier
+#   linux_fx_version        = var.azure_app_service_runtime
+#   tags                    = local.base_tags
+# }
 
