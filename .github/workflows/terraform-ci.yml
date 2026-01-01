@@ -221,7 +221,7 @@ jobs:
             trivy-${{ runner.os }}-
 
       - name: Trivy Config (Terraform) Scan
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: config
           format: sarif
