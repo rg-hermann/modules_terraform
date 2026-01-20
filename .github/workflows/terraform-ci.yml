@@ -35,7 +35,7 @@ jobs:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
       - name: Cache Terraform plugins
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.terraform.d/plugin-cache
@@ -68,7 +68,7 @@ jobs:
           tflint_version: ${{ env.TFLINT_VERSION }}
 
       - name: Cache TFLint plugin dir
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.tflint.d/plugins
           key: tflint-${{ runner.os }}-${{ env.TFLINT_VERSION }}-${{ hashFiles('.tflint.hcl') }}
@@ -213,7 +213,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Trivy cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/trivy
           key: trivy-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
