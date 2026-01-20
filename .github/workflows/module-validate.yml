@@ -27,7 +27,7 @@ jobs:
     outputs:
       modules: ${{ steps.discover.outputs.modules }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: discover
         run: |
           # Find modules with main.tf (not empty)
@@ -45,7 +45,7 @@ jobs:
         module: ${{ fromJson(needs.discover.outputs.modules) }}
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: hashicorp/setup-terraform@v3
         with:

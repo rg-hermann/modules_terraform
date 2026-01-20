@@ -27,7 +27,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -190,7 +190,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Run tfsec (informational)
         uses: aquasecurity/tfsec-action@v1.0.3
@@ -210,7 +210,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Trivy cache
         uses: actions/cache@v5
@@ -272,7 +272,7 @@ jobs:
   #   if: github.event_name == 'pull_request'
   #   steps:
   #     - name: Checkout
-  #       uses: actions/checkout@v4
+  #       uses: actions/checkout@v6
   #     - name: Copilot Review
   #       uses: github/copilot-code-review-action@v1
   #       with:
