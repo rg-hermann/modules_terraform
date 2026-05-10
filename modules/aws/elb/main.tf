@@ -1,18 +1,18 @@
 resource "aws_lb" "this" {
-  name            = var.name
-  internal        = var.internal
+  name               = var.name
+  internal           = var.internal
   load_balancer_type = var.type
-  security_groups = var.security_groups
-  subnets         = var.subnets
-  tags            = var.tags
+  security_groups    = var.security_groups
+  subnets            = var.subnets
+  tags               = var.tags
 }
 
 resource "aws_lb_target_group" "this" {
-  name        = var.target_group_name
-  port        = var.target_port
-  protocol    = var.protocol
-  vpc_id      = var.vpc_id
-  tags        = var.tags
+  name     = var.target_group_name
+  port     = var.target_port
+  protocol = var.protocol
+  vpc_id   = var.vpc_id
+  tags     = var.tags
 }
 
 resource "aws_lb_listener" "this" {

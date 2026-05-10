@@ -16,16 +16,16 @@ terraform {
 provider "aws" {
   region = "us-east-1"
   endpoints {
-    s3       = "http://localhost:4566"
-    elb      = "http://localhost:4566"
-    ec2      = "http://localhost:4566"
-    rds      = "http://localhost:4566"
-    iam      = "http://localhost:4566"
-    logs     = "http://localhost:4566"
+    s3   = "http://localhost:4566"
+    elb  = "http://localhost:4566"
+    ec2  = "http://localhost:4566"
+    rds  = "http://localhost:4566"
+    iam  = "http://localhost:4566"
+    logs = "http://localhost:4566"
   }
-  access_key = "test"
-  secret_key = "test"
-  s3_use_path_style = true
+  access_key                  = "test"
+  secret_key                  = "test"
+  s3_use_path_style           = true
   skip_credentials_validation = true
   skip_metadata_api_check     = true
   skip_requesting_account_id  = true
@@ -93,47 +93,47 @@ module "aws_security_group" {
 }
 
 module "aws_ec2" {
-  count             = var.enable_aws_ec2 ? 1 : 0
-  source            = "./modules/aws/ec2"
-  instance_name     = "${var.project_name}-ec2"
-  ami_id            = var.aws_ec2_ami_id
-  instance_type     = var.aws_ec2_instance_type
-  subnet_id         = var.enable_aws_vpc ? module.aws_vpc[0].public_subnet_ids[0] : null
-  security_groups   = var.enable_aws_security_group ? [module.aws_security_group[0].security_group_id] : []
-  key_name          = var.aws_ec2_key_name
+  count               = var.enable_aws_ec2 ? 1 : 0
+  source              = "./modules/aws/ec2"
+  instance_name       = "${var.project_name}-ec2"
+  ami_id              = var.aws_ec2_ami_id
+  instance_type       = var.aws_ec2_instance_type
+  subnet_id           = var.enable_aws_vpc ? module.aws_vpc[0].public_subnet_ids[0] : null
+  security_groups     = var.enable_aws_security_group ? [module.aws_security_group[0].security_group_id] : []
+  key_name            = var.aws_ec2_key_name
   associate_public_ip = true
-  tags              = local.base_tags
+  tags                = local.base_tags
 }
 
 module "aws_rds" {
-  count              = var.enable_aws_rds ? 1 : 0
-  source             = "./modules/aws/rds"
-  identifier         = "${var.project_name}-db"
-  engine             = var.aws_db_engine
-  engine_version     = var.aws_db_engine_version
-  instance_class     = var.aws_db_instance_class
-  allocated_storage  = var.aws_db_allocated_storage
-  username           = var.aws_db_username
-  password           = var.aws_db_password
-  db_name            = var.aws_db_name
-  subnet_ids         = var.enable_aws_vpc ? module.aws_vpc[0].private_subnet_ids : []
-  security_groups    = var.enable_aws_security_group ? [module.aws_security_group[0].security_group_id] : []
+  count               = var.enable_aws_rds ? 1 : 0
+  source              = "./modules/aws/rds"
+  identifier          = "${var.project_name}-db"
+  engine              = var.aws_db_engine
+  engine_version      = var.aws_db_engine_version
+  instance_class      = var.aws_db_instance_class
+  allocated_storage   = var.aws_db_allocated_storage
+  username            = var.aws_db_username
+  password            = var.aws_db_password
+  db_name             = var.aws_db_name
+  subnet_ids          = var.enable_aws_vpc ? module.aws_vpc[0].private_subnet_ids : []
+  security_groups     = var.enable_aws_security_group ? [module.aws_security_group[0].security_group_id] : []
   publicly_accessible = false
-  tags               = local.base_tags
+  tags                = local.base_tags
 }
 
 module "aws_load_balancer" {
-  count              = var.enable_aws_alb ? 1 : 0
-  source             = "./modules/aws/elb"
-  name               = "${var.project_name}-alb"
-  internal           = var.aws_alb_internal
-  subnets            = var.enable_aws_vpc ? module.aws_vpc[0].public_subnet_ids : []
-  vpc_id             = var.enable_aws_vpc ? module.aws_vpc[0].vpc_id : null
-  security_groups    = var.enable_aws_security_group ? [module.aws_security_group[0].security_group_id] : []
-  target_group_name  = "${var.project_name}-tg"
-  target_port        = 80
-  listener_port      = 80
-  tags               = local.base_tags
+  count             = var.enable_aws_alb ? 1 : 0
+  source            = "./modules/aws/elb"
+  name              = "${var.project_name}-alb"
+  internal          = var.aws_alb_internal
+  subnets           = var.enable_aws_vpc ? module.aws_vpc[0].public_subnet_ids : []
+  vpc_id            = var.enable_aws_vpc ? module.aws_vpc[0].vpc_id : null
+  security_groups   = var.enable_aws_security_group ? [module.aws_security_group[0].security_group_id] : []
+  target_group_name = "${var.project_name}-tg"
+  target_port       = 80
+  listener_port     = 80
+  tags              = local.base_tags
 }
 
 module "aws_s3" {
@@ -147,9 +147,9 @@ module "aws_s3" {
 }
 
 module "aws_iam_role" {
-  count       = var.enable_aws_iam ? 1 : 0
-  source      = "./modules/aws/iam"
-  role_name   = "${var.project_name}-role"
+  count     = var.enable_aws_iam ? 1 : 0
+  source    = "./modules/aws/iam"
+  role_name = "${var.project_name}-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -169,11 +169,11 @@ module "aws_iam_role" {
 }
 
 module "aws_cloudwatch" {
-  count         = var.enable_aws_cloudwatch ? 1 : 0
-  source        = "./modules/aws/cloudwatch"
-  log_group_name = "/aws/${var.project_name}/logs"
+  count             = var.enable_aws_cloudwatch ? 1 : 0
+  source            = "./modules/aws/cloudwatch"
+  log_group_name    = "/aws/${var.project_name}/logs"
   retention_in_days = var.aws_cw_retention_days
-  tags          = local.base_tags
+  tags              = local.base_tags
 }
 
 # ============================================================================
