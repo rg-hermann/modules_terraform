@@ -108,6 +108,81 @@ variable "aws_db_password" {
   sensitive   = true
 }
 
+variable "aws_db_name" {
+  description = "RDS database name"
+  type        = string
+}
+
+variable "aws_db_engine_version" {
+  description = "RDS engine version"
+  type        = string
+}
+
+variable "aws_db_allocated_storage" {
+  description = "RDS allocated storage in GB"
+  type        = number
+}
+
+variable "enable_aws_ec2" {
+  description = "Enable AWS EC2 instance module"
+  type        = bool
+}
+
+variable "aws_ec2_ami_id" {
+  description = "AMI ID for EC2 instance"
+  type        = string
+}
+
+variable "aws_ec2_instance_type" {
+  description = "EC2 instance type"
+  type        = string
+}
+
+variable "aws_ec2_key_name" {
+  description = "SSH key pair name for EC2"
+  type        = string
+}
+
+variable "enable_aws_iam" {
+  description = "Enable AWS IAM role module"
+  type        = bool
+}
+
+variable "enable_aws_cloudwatch" {
+  description = "Enable AWS CloudWatch log group module"
+  type        = bool
+}
+
+variable "aws_cw_retention_days" {
+  description = "CloudWatch log retention in days"
+  type        = number
+}
+
+variable "aws_private_subnets" {
+  description = "Private subnet CIDR blocks"
+  type        = list(string)
+}
+
+variable "aws_enable_nat_gateway" {
+  description = "Enable NAT Gateway in VPC"
+  type        = bool
+}
+
+variable "aws_s3_versioning" {
+  description = "Enable S3 versioning"
+  type        = bool
+}
+
+variable "aws_s3_encryption" {
+  description = "Enable S3 server-side encryption"
+  type        = bool
+}
+
+variable "aws_s3_public_access" {
+  description = "Block public access to S3 bucket"
+  type        = bool
+}
+
 # ============================================================================
 # AZURE VARIABLES
 # ============================================================================
