@@ -11,9 +11,9 @@ resource "azurerm_postgresql_flexible_server" "this" {
 }
 
 resource "azurerm_postgresql_flexible_server_database" "this" {
-  count           = length(var.databases)
-  name            = var.databases[count.index]
-  server_id       = azurerm_postgresql_flexible_server.this.id
-  charset         = "UTF8"
-  collation       = "en_US.utf8"
+  count     = length(var.databases)
+  name      = var.databases[count.index]
+  server_id = azurerm_postgresql_flexible_server.this.id
+  charset   = "UTF8"
+  collation = "en_US.utf8"
 }
