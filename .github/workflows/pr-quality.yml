@@ -37,7 +37,7 @@ jobs:
           echo '⚠ Checklist parece incompleto (aviso apenas)'
 
       - name: Add Size Label
-        uses: pascalgn/size-label-action@v0.5.5
+        uses: pascalgn/size-label-action@v0.5.7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
